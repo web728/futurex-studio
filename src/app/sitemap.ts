@@ -1,0 +1,2 @@
+import type { MetadataRoute } from "next"; import { projects, siteUrl } from "@/data/site";
+export default function sitemap():MetadataRoute.Sitemap{const routes=["","/about","/services","/portfolio","/exhibition-solutions","/contact","/privacy-policy","/terms"];return [...routes.map(route=>({url:`${siteUrl}${route}`,lastModified:new Date(),changeFrequency:"monthly" as const,priority:route===""?1:.7})),...projects.map(p=>({url:`${siteUrl}/portfolio/${p.slug}`,lastModified:new Date(),changeFrequency:"yearly" as const,priority:.6}))]}
