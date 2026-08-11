@@ -28,9 +28,10 @@ const DEFAULT_STATS: StatItem[] = [
   { value: 2000, suffix: "+", label: "Brand partners across industries" },
 ];
 
+
 export function PovStatsSection({
   stats = DEFAULT_STATS,
-  imageSrc = "/gallery/img-2.jpeg",
+  imageSrc = "/media/brand/fstudio-6-1024x683.webp",
 }: PovStatsSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const statsContainerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +48,7 @@ export function PovStatsSection({
 
       if (prefersReducedMotion) return;
 
-      // 1. High-End Text Reveal Animation
+      // 1. Text Reveal
       if (titleRef.current) {
         const split = new SplitType(titleRef.current, { types: "words,chars" });
         if (split.chars) {
@@ -74,7 +75,7 @@ export function PovStatsSection({
         }
       }
 
-      // 2. Animated Counter Numbers & Card Reveal
+      // 2. Counter Numbers & Card Reveal
       if (statsContainerRef.current) {
         const statCards = statsContainerRef.current.querySelectorAll(".stat-card");
 
@@ -90,7 +91,6 @@ export function PovStatsSection({
             },
           });
 
-          // Card Reveal Animation
           tl.fromTo(
             card,
             { opacity: 0, y: 30, scale: 0.97 },
@@ -104,10 +104,8 @@ export function PovStatsSection({
             }
           );
 
-          // Counter Numbers Animation
           if (numberEl) {
             const counterObj = { val: 0 };
-            
             gsap.set(numberEl, { opacity: 1 });
 
             tl.to(
@@ -139,13 +137,10 @@ export function PovStatsSection({
       ref={sectionRef}
       className="pov-section relative overflow-hidden bg-[#0a0b0d] py-12 lg:py-20 text-white border-t border-white/10"
     >
-      {/* Subtle Ambient Glows */}
       <div className="pointer-events-none absolute -left-32 top-1/4 h-[350px] w-[350px] rounded-full bg-[var(--accent,#ff5a2a)]/10 blur-[140px]" />
       <div className="pointer-events-none absolute -right-32 bottom-10 h-[300px] w-[300px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[120px]" />
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 max-w-6xl">
-        
-        {/* Section Header - Compact */}
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
@@ -164,7 +159,7 @@ export function PovStatsSection({
           </p>
         </div>
 
-        {/* Animated Stats Grid - Tight & Dense Layout */}
+        {/* Stats Grid */}
         <div
           ref={statsContainerRef}
           className="mt-10 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-2 lg:grid-cols-4"
@@ -191,15 +186,14 @@ export function PovStatsSection({
           ))}
         </div>
 
-        {/* Left Side Image + Right Side Content Grid Split */}
+        {/* Image & Detail Grid Split */}
         <div className="mt-10 grid gap-6 lg:grid-cols-12 items-stretch">
           
-          {/* Left Side: Interactive Image Canvas Frame */}
-          <div className="lg:col-span-7 overflow-hidden rounded-xl border border-white/15 bg-white/5 shadow-xl transition-transform duration-500 hover:border-[var(--accent,#ff5a2a)]/30 min-h-[280px]">
+          {/* FIX HERE: Added relative, h-[350px] sm:h-[400px] lg:h-auto w-full to guarantee proper rendering */}
+          <div className="relative lg:col-span-7 w-full min-h-[320px] h-[350px] lg:h-auto overflow-hidden rounded-xl border border-white/15 transition-transform duration-500 hover:border-[var(--accent,#ff5a2a)]/30">
             <PovLiquidImage src={imageSrc} alt="Studio Showcase" />
           </div>
 
-          {/* Right Side: Concept to Execution Detailed Card */}
           <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-white/10 bg-white/[0.02] p-6 lg:p-8 backdrop-blur-xl">
             <div>
               <div className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">

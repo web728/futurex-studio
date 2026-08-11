@@ -12,7 +12,7 @@ export type SiteImageAssignment = {
 
 export const siteImages = {
   homeHero: {
-    src: "/gallery/img-1.jpeg",
+    src: "/gallery/img-13.jpeg",
     width: 1514,
     height: 1080,
     alt: "Black illuminated Q Green Techcon exhibition stall with an open reception counter",
@@ -23,7 +23,7 @@ export const siteImages = {
     priority: true,
   },
   homeIntroduction: {
-    src: "/gallery/img-2.jpeg",
+    src: "/gallery/img-20.jpeg",
     width: 1247,
     height: 1080,
     alt: "APL Apollo exhibition pavilion with framed product displays and meeting space",
@@ -33,7 +33,7 @@ export const siteImages = {
     objectPosition: "center center",
   },
   homeServices: {
-    src: "/gallery/img-3.jpeg",
+    src: "/gallery/img-16.jpeg",
     width: 1384,
     height: 1080,
     alt: "Red and white Kamdhenu Build Tech exhibition stall with angular architectural framing",
@@ -53,7 +53,7 @@ export const siteImages = {
     objectPosition: "center center",
   },
   aboutHero: {
-    src: "/gallery-img-1.jpeg",
+    src: "/media/brand/studio-1024x693.jpg",
     width: 1267,
     height: 1080,
     alt: "Ishwara Paper Cup exhibition stand with illuminated product shelving",
@@ -75,7 +75,7 @@ export const siteImages = {
     priority: true,
   },
   contactHero: {
-    src: "/media/curated/contact-hero-arb-bearings.webp",
+    src: "/media/brand/fstudio-1-1024x683.webp",
     width: 1440,
     height: 1080,
     alt: "Open ARB Bearings exhibition environment with illuminated brand signage",
@@ -86,7 +86,7 @@ export const siteImages = {
     priority: true,
   },
   siteSocial: {
-    src: "/media/projects/exhibition-project-07.jpeg",
+    src: "/media/brand/fs-2-1024x771.webp",
     width: 1600,
     height: 1066,
     alt: "Futurex Studio exhibition design and fabrication",
@@ -106,7 +106,7 @@ export const projectMedia: Record<
 > = {
   "selected-exhibition-project-01": {
     featured: {
-      src: "/media/curated/featured-aero-edge.webp",
+      src: "/media/brand/fstudio-2-1024x683.webp",
       width: 1609,
       height: 1080,
       alt: "Aero Edge exhibition stall with colourful product displays",
@@ -115,7 +115,7 @@ export const projectMedia: Record<
       role: "featured",
     },
     thumbnail: {
-      src: "/media/curated/portfolio-arb-bearings.webp",
+      src: "/media/brand/fstudio-9-1024x683.webp",
       width: 1920,
       height: 880,
       alt: "Wide ARB Bearings exhibition pavilion with illuminated blue architecture",
