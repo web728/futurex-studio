@@ -19,87 +19,49 @@ export function CinematicHero() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Initial hidden state with autoAlpha (combines opacity & visibility)
-      gsap.set(
-        [
-          taglineRef.current,
-          titleRef.current,
-          subtitleRef.current,
-          ctaRef.current,
-          scrollIndicatorRef.current,
-        ],
-        {
-          autoAlpha: 0,
-          y: 45,
-        }
-      );
+      const animatedElements = [
+        taglineRef.current,
+        titleRef.current,
+        subtitleRef.current,
+        ctaRef.current,
+        scrollIndicatorRef.current,
+      ];
 
-      // 2. Cinematic entrance timeline
-      const tl = gsap.timeline({
-        defaults: { ease: "power4.out", duration: 1.2 },
+      // 1. Initial hidden state
+      gsap.set(animatedElements, {
+        autoAlpha: 0,
+        y: 45,
       });
 
-      tl.to(taglineRef.current, {
-        autoAlpha: 1,
-        y: 0,
-        delay: 0.1,
-      })
-        .to(
-          titleRef.current,
-          {
-            autoAlpha: 1,
-            y: 0,
-          },
-          "-=0.9"
-        )
-        .to(
-          subtitleRef.current,
-          {
-            autoAlpha: 1,
-            y: 0,
-          },
-          "-=0.9"
-        )
-        .to(
-          ctaRef.current,
-          {
-            autoAlpha: 1,
-            y: 0,
-          },
-          "-=0.8"
-        )
-        .to(
-          scrollIndicatorRef.current,
-          {
-            autoAlpha: 1,
-            y: 0,
-          },
-          "-=0.8"
-        );
+      // 2. Cinematic entrance timeline on page load
+      const entranceTl = gsap.timeline({
+        defaults: { ease: "power4.out", duration: 1.1 },
+      });
 
-      // 3. Scroll Parallax effect as user scrolls past the hero
-      gsap.to(
-        [
-          taglineRef.current,
-          titleRef.current,
-          subtitleRef.current,
-          ctaRef.current,
-        ],
-        {
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-          },
-          y: -50,
-          opacity: 0,
-          ease: "none",
-        }
-      );
+      entranceTl
+        .to(taglineRef.current, { autoAlpha: 1, y: 0, delay: 0.1 })
+        .to(titleRef.current, { autoAlpha: 1, y: 0 }, "-=0.85")
+        .to(subtitleRef.current, { autoAlpha: 1, y: 0 }, "-=0.85")
+        .to(ctaRef.current, { autoAlpha: 1, y: 0 }, "-=0.75")
+        .to(scrollIndicatorRef.current, { autoAlpha: 1, y: 0 }, "-=0.75");
+
+      // 3. Scroll Out & Reverse Scroll-In (Ensures text never stays hidden at top)
+      gsap.to(animatedElements, {
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          end: "70% top",
+          scrub: 0.5, // Smooth scrubbing
+          toggleActions: "play reverse play reverse",
+        },
+        y: -40,
+        autoAlpha: 0, // autoAlpha handles visibility + opacity cleanly
+        stagger: 0.05,
+        ease: "power1.inOut",
+      });
     }, containerRef);
 
-    // Refresh GSAP on DOM ready
+    // Refresh ScrollTrigger to calculate accurate bounds
     ScrollTrigger.refresh();
 
     return () => ctx.revert();
@@ -120,14 +82,14 @@ export function CinematicHero() {
       <div className="relative z-[10] my-auto max-w-5xl py-8 lg:py-12">
         <p
           ref={taglineRef}
-          className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent,#d4af37)]"
+          className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent,#d4af37)] will-change-transform"
         >
           Spatial & Spatial Experience Studio
         </p>
 
         <h1
           ref={titleRef}
-          className="text-[clamp(2.25rem,5.5vw,5rem)] font-bold leading-[1.05] tracking-tight text-white"
+          className="text-[clamp(2.25rem,5.5vw,5rem)] font-bold leading-[1.05] tracking-tight text-white will-change-transform"
         >
           Architectural depth. <br />
           <span className="text-white/60">Flawless execution.</span>
@@ -135,12 +97,13 @@ export function CinematicHero() {
 
         <p
           ref={subtitleRef}
-          className="mt-6 max-w-2xl text-base font-light text-white/70 lg:text-lg"
+          className="mt-6 max-w-2xl text-base font-light text-white/70 lg:text-lg will-change-transform"
         >
-          We bridge physical craftsmanship and visionary spatial design to turn brand presence into unforgettable, immersive environments.
+          We bridge physical craftsmanship and visionary spatial design to turn
+          brand presence into unforgettable, immersive environments.
         </p>
 
-        <div ref={ctaRef} className="mt-8 flex flex-wrap gap-4">
+        <div ref={ctaRef} className="mt-8 flex flex-wrap gap-4 will-change-transform">
           <a
             href="#projects"
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white px-7 py-3 text-sm font-medium text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
@@ -159,7 +122,7 @@ export function CinematicHero() {
       {/* Scroll Indicator */}
       <div
         ref={scrollIndicatorRef}
-        className="relative z-[10] flex items-center gap-3 text-xs uppercase tracking-widest text-white/40"
+        className="relative z-[10] flex items-center gap-3 text-xs uppercase tracking-widest text-white/40 will-change-transform"
       >
         <div className="h-8 w-[1px] overflow-hidden bg-white/20">
           <div className="h-full w-full animate-pulse bg-white" />

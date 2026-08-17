@@ -11,6 +11,22 @@ import { projectMedia } from "@/data/site-images";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 👇 Yahan apni /public/gallery/ waali 4 images ka filename daal de (order = card order)
+const featuredCardImages = [
+  "/gallery/project-1.jpg",
+  "/gallery/1.3.jpg",
+  "/gallery/4.png",
+  "/gallery/project-4.jpeg",
+];
+
+// 👇 In 4 cards ke liye actual project naam yahan daal de (order = upar wali images ke order jaisa)
+const featuredCardTitles = [
+  "R.K Steel",
+  "Kajaria Laminates",
+  "Hvac Solution Bengaluru",
+  "Q Green",
+];
+
 // Word-level mask helper component for liquid wave animation
 function WaveWordText({
   text,
@@ -196,7 +212,13 @@ export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
         {/* Project Cards Grid */}
         <div className="mt-8 grid gap-x-6 gap-y-10 md:grid-cols-2 lg:mt-10">
           {featured.map((project, index) => (
-            <ProjectFeature key={project.slug} project={project} index={index} />
+            <ProjectFeature
+              key={project.slug}
+              project={project}
+              index={index}
+              image={featuredCardImages[index]}
+              title={featuredCardTitles[index]}
+            />
           ))}
         </div>
 
@@ -221,9 +243,13 @@ export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
 function ProjectFeature({
   project,
   index,
+  image,
+  title,
 }: {
   project: Project;
   index: number;
+  image: string;
+  title: string;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -275,21 +301,16 @@ function ProjectFeature({
     >
       <Link href={`/portfolio/${project.slug}`} className="group block">
         {/* Image Mask Frame */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black/10 shadow-lg transition-all duration-500 group-hover:shadow-2xl">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#111312] shadow-lg transition-all duration-500 group-hover:shadow-2xl">
           <Image
             ref={imageRef}
-            src={project.featuredImage!}
-            alt={projectMedia[project.slug]?.featured?.alt ?? project.title}
+            src={image}
+            alt={title}
             fill
             sizes="(max-width:768px) 100vw, 50vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            className="object-contain transition-transform duration-700 ease-out group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/10" />
-          
-          {/* Index Badge */}
-          <span className="absolute left-4 top-4 rounded-md bg-black/80 px-2.5 py-1.5 text-[10px] tracking-[.14em] text-white backdrop-blur-md">
-            0{index + 1}
-          </span>
         </div>
 
         {/* Info Header */}
@@ -299,7 +320,7 @@ function ProjectFeature({
               {project.category}
             </p>
             <h3 className="display mt-1 text-xl font-semibold sm:text-2xl transition-colors duration-300 group-hover:text-[var(--accent,#ff5a2a)]">
-              {project.title}
+              {title}
             </h3>
           </div>
           <ArrowUpRight className="mt-1 shrink-0 text-[var(--accent,#ff5a2a)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />

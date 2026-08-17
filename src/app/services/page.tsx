@@ -23,11 +23,12 @@ if (typeof window !== "undefined") {
 
 const serviceIcons = [Layers, PenTool, Boxes, Hammer, Sparkles];
 
+// 👇 Yahan har stall type ke saamne apni /public/hdri/ waali image ka filename daal de
 const stallFormats = [
-  "Modular booths",
-  "Custom-built stands",
-  "Double-deck structures",
-  "Portable & pop-up displays",
+  { label: "Modular booths", image: "/hdri/modular.jfif" },
+  { label: "Custom-built stands", image: "/hdri/sec.jfif" },
+  { label: "Double-deck structures", image: "/hdri/double-deck.jfif" },
+  { label: "Portable & pop-up displays", image: "/hdri/pop-up.jfif" },
 ];
 
 const servicesData = [

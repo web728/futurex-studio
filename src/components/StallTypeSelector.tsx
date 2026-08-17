@@ -1,14 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
+export interface StallTypeItem {
+  label: string;
+  image: string; // path relative to /public, e.g. "/hdri/modular-booth.jpg"
+}
+
 interface StallTypeSelectorProps {
-  items: string[];
+  items: StallTypeItem[];
 }
 
 export function StallTypeSelector({ items }: StallTypeSelectorProps) {
-  const [active, setActive] = useState(items[0] || "");
+  const [active, setActive] = useState(items[0]?.label || "");
+
+  const activeItem = items.find((x) => x.label === active) || items[0];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
@@ -19,11 +27,11 @@ export function StallTypeSelector({ items }: StallTypeSelectorProps) {
         className="border-t border-black/15"
       >
         {items.map((x, i) => {
-          const isActive = active === x;
+          const isActive = active === x.label;
           return (
             <button
-              key={x}
-              onClick={() => setActive(x)}
+              key={x.label}
+              onClick={() => setActive(x.label)}
               aria-pressed={isActive}
               className={`relative flex w-full items-center justify-between border-b border-black/15 px-3 py-2.5 text-left transition-all duration-200 cursor-pointer ${
                 isActive
@@ -38,7 +46,7 @@ export function StallTypeSelector({ items }: StallTypeSelectorProps) {
 
               {/* Text with Descender Cutoff Fix ('g', 'p', 'y') */}
               <span className="text-sm tracking-tight leading-normal pb-0.5">
-                {x}
+                {x.label}
               </span>
 
               {/* Number Badge */}
@@ -50,25 +58,35 @@ export function StallTypeSelector({ items }: StallTypeSelectorProps) {
         })}
       </div>
 
-      {/* 2. Right Preview Display - Compact Height */}
-      <div className="relative grid min-h-[220px] place-items-center overflow-hidden rounded-xl border border-black/15 bg-[#d9d2c7]/80 p-6 shadow-inner">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0, scale: 0.96, y: 4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 1.02, y: -4 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-5 grid place-items-center rounded-lg border border-black/30 bg-black/[0.02] transform-gpu will-change-transform"
-          >
-            <div className="absolute inset-2 rounded border border-dashed border-black/20 pointer-events-none" />
+      {/* 2. Right Preview Display - Image on active click */}
+      <div className="relative grid min-h-[220px] place-items-center overflow-hidden rounded-xl border border-black/15 bg-[#d9d2c7]/80 shadow-inner">
+      <AnimatePresence mode="wait">
+  {activeItem && (
+    <motion.div
+      key={activeItem.label}
+      initial={{ opacity: 0, scale: 0.96, y: 4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 1.02, y: -4 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className="absolute inset-8 overflow-hidden rounded-lg border border-black/20 transform-gpu will-change-transform"
+    >
+      <Image
+        src={activeItem.image}
+        alt={activeItem.label}
+        fill
+        sizes="(max-width: 1024px) 100vw, 60vw"
+        className="object-cover"
+        priority
+      />
 
-            {/* Display Label with Text Cutoff Fix */}
-            <p className="relative rounded-md bg-[#d9d2c7] px-6 py-2.5 text-center text-xl font-semibold leading-normal tracking-tight text-black shadow-sm pb-1">
-              {active}
-            </p>
-          </motion.div>
-        </AnimatePresence>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-5 pb-4 pt-10">
+        <p className="pb-1 text-base font-semibold leading-normal tracking-tight text-white">
+          {activeItem.label}
+        </p>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
       </div>
     </div>
   );
