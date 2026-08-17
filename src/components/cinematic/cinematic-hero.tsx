@@ -8,14 +8,17 @@ import { ArrowDown } from "lucide-react";
 import { gsap } from "gsap";
 import { siteImages } from "@/data/site-images";
 
-// स्थानीय कंपोनेंट्स (Local Components)
+// Local Typography Components
 import { KineticTitle, GlitchText } from "../motion/kinetic-typography";
 import { MagneticButton } from "../motion/magnetic-button";
 
-// React Three Fiber Scene
+// React Three Fiber Scene - Non-blocking Client Load
 const Hero3DScene = dynamic(
   () => import("./hero-3d-scene").then((m) => m.Hero3DScene),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full bg-transparent" />
+  }
 );
 
 export function CinematicHero() {
@@ -32,24 +35,28 @@ export function CinematicHero() {
   const heroRadius = useTransform(scrollYProgress, [0, 0.8], ["0px", "32px"]);
   const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
+  // Optimized Mouse Move Parallax using RAF
   useEffect(() => {
     if (reduce) return;
 
+    let xVal = 0;
+    let yVal = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
-      const x = (e.clientX / innerWidth - 0.5) * 16;
-      const y = (e.clientY / innerHeight - 0.5) * 16;
+      xVal = (e.clientX / innerWidth - 0.5) * 16;
+      yVal = (e.clientY / innerHeight - 0.5) * 16;
 
       gsap.to(".hero-parallax-layer", {
-        x: x * 0.6,
-        y: y * 0.6,
+        x: xVal * 0.6,
+        y: yVal * 0.6,
         duration: 1.2,
         ease: "power2.out",
         overwrite: "auto",
       });
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [reduce]);
 
@@ -63,19 +70,23 @@ export function CinematicHero() {
           className="absolute -inset-y-[10%] inset-x-0"
           style={reduce ? {} : { y: imageY, scale: imageScale }}
         >
+          {/* LCP Optimized Next Image */}
           <Image
             src={siteImages.homeHero.src}
             alt={siteImages.homeHero.alt}
             fill
             priority
+            fetchPriority="high"
+            quality={85}
             sizes="100vw"
             className="object-cover object-[58%_center] sm:object-center"
           />
         </motion.div>
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-[#0b0c0d]" />
-        <div className="absolute inset-0 noise" />
+        <div className="absolute inset-0 noise pointer-events-none" />
 
+        {/* 3D Canvas Container - Desktop only */}
         <div className="pointer-events-none absolute inset-0 hidden lg:block">
           <div className="pointer-events-auto absolute right-[4%] top-[10%] h-[48%] w-[38%] opacity-95">
             <Hero3DScene />

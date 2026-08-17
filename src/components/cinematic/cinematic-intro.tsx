@@ -8,7 +8,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { siteImages } from "@/data/site-images";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 // Helper component to split text into word-level masks for wave animation
 function WaveWordText({
@@ -45,9 +47,9 @@ function WaveWordText({
 export function CinematicIntro() {
   const sectionRef = useRef<HTMLElement>(null);
   const imageWrapperRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const imageInnerRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLParagraphElement>(null);
-  
+
   // Word Refs Arrays for Word-by-Word Wave Animation
   const title1WordsRef = useRef<HTMLSpanElement[]>([]);
   const title2WordsRef = useRef<HTMLSpanElement[]>([]);
@@ -58,111 +60,127 @@ export function CinematicIntro() {
   const ctaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Prevent duplicate ref references on re-render / HMR
+    title1WordsRef.current = [];
+    title2WordsRef.current = [];
+    desc1WordsRef.current = [];
+    desc2WordsRef.current = [];
+
     const ctx = gsap.context(() => {
-      // 1. Image Parallax Effect
-      gsap.fromTo(
-        imageRef.current,
-        { scale: 1.18, yPercent: -8 },
-        {
-          scale: 1,
-          yPercent: 8,
-          ease: "none",
-          scrollTrigger: {
-            trigger: imageWrapperRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1.2,
-          },
-        }
-      );
+      // 1. Image Parallax Effect via Container Wrapper (Prevents Next.js Image Ref Mismatches)
+      if (imageInnerRef.current) {
+        gsap.fromTo(
+          imageInnerRef.current,
+          { scale: 1.15, yPercent: -6 },
+          {
+            scale: 1,
+            yPercent: 6,
+            ease: "none",
+            scrollTrigger: {
+              trigger: imageWrapperRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1,
+            },
+          }
+        );
+      }
 
       // 2. Timeline for Word Wave Sequence
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 70%",
-          toggleActions: "play none none reverse",
+          start: "top 75%",
+          once: true,
         },
       });
 
       // Eyebrow reveal
       tl.fromTo(
         eyebrowRef.current,
-        { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
       );
 
       // Title Line 1 - Word-by-Word Wave Reveal
-      tl.fromTo(
-        title1WordsRef.current,
-        { y: "115%", opacity: 0, rotateX: -30 },
-        {
-          y: "0%",
-          opacity: 1,
-          rotateX: 0,
-          duration: 0.9,
-          stagger: 0.035, // Word wave speed
-          ease: "power4.out",
-        },
-        "-=0.4"
-      );
+      if (title1WordsRef.current.length > 0) {
+        tl.fromTo(
+          title1WordsRef.current,
+          { y: "115%", opacity: 0, rotateX: -25 },
+          {
+            y: "0%",
+            opacity: 1,
+            rotateX: 0,
+            duration: 0.85,
+            stagger: 0.03,
+            ease: "power4.out",
+          },
+          "-=0.4"
+        );
+      }
 
       // Title Line 2 (Accent) - Word-by-Word Wave Reveal
-      tl.fromTo(
-        title2WordsRef.current,
-        { y: "115%", opacity: 0, rotateX: -30 },
-        {
-          y: "0%",
-          opacity: 1,
-          rotateX: 0,
-          duration: 0.9,
-          stagger: 0.04,
-          ease: "power4.out",
-        },
-        "-=0.7"
-      );
+      if (title2WordsRef.current.length > 0) {
+        tl.fromTo(
+          title2WordsRef.current,
+          { y: "115%", opacity: 0, rotateX: -25 },
+          {
+            y: "0%",
+            opacity: 1,
+            rotateX: 0,
+            duration: 0.85,
+            stagger: 0.035,
+            ease: "power4.out",
+          },
+          "-=0.6"
+        );
+      }
 
       // Animated Divider Line
       tl.fromTo(
         lineRef.current,
         { scaleX: 0 },
-        { scaleX: 1, duration: 0.8, ease: "power3.inOut" },
+        { scaleX: 1, duration: 0.75, ease: "power3.inOut" },
         "-=0.5"
       );
 
       // Paragraph 1 - Word-by-Word Smooth Wave
-      tl.fromTo(
-        desc1WordsRef.current,
-        { y: "100%", opacity: 0 },
-        {
-          y: "0%",
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.015,
-          ease: "power3.out",
-        },
-        "-=0.5"
-      );
+      if (desc1WordsRef.current.length > 0) {
+        tl.fromTo(
+          desc1WordsRef.current,
+          { y: "100%", opacity: 0 },
+          {
+            y: "0%",
+            opacity: 1,
+            duration: 0.55,
+            stagger: 0.012,
+            ease: "power3.out",
+          },
+          "-=0.5"
+        );
+      }
 
       // Paragraph 2 - Word-by-Word Smooth Wave
-      tl.fromTo(
-        desc2WordsRef.current,
-        { y: "100%", opacity: 0 },
-        {
-          y: "0%",
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.012,
-          ease: "power3.out",
-        },
-        "-=0.4"
-      );
+      if (desc2WordsRef.current.length > 0) {
+        tl.fromTo(
+          desc2WordsRef.current,
+          { y: "100%", opacity: 0 },
+          {
+            y: "0%",
+            opacity: 1,
+            duration: 0.55,
+            stagger: 0.01,
+            ease: "power3.out",
+          },
+          "-=0.4"
+        );
+      }
 
       // CTA Button Reveal
       tl.fromTo(
         ctaRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" },
         "-=0.3"
       );
     }, sectionRef);
@@ -174,31 +192,30 @@ export function CinematicIntro() {
     <section
       ref={sectionRef}
       id="intro"
-      /* CHANGED: Padding height ko kam karke py-10 / py-16 kar diya hai */
       className="relative overflow-hidden bg-[#0b0c0d] py-10 lg:py-16"
     >
-      {/* Dynamic Smooth Transition Gradient Overlay (Seamless Fade from Hero) */}
+      {/* Seamless Top Transition Overlay */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-[#0a0a0c] via-[#0b0c0d]/80 to-transparent backdrop-blur-[2px]" />
 
-      {/* Background Radial Glow */}
+      {/* Background Ambient Radial Glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_30%,rgba(255,90,42,0.06)_0%,transparent_65%)]" />
 
       <div className="container relative z-10 grid gap-8 lg:grid-cols-[.92fr_1.08fr] lg:items-center">
-        {/* Image Parallax Section */}
+        {/* Image Parallax Frame */}
         <div
           ref={imageWrapperRef}
           className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#121316] shadow-2xl shadow-black/80 transition-all duration-500 hover:border-[var(--accent,#ff5a2a)]/40 hover:shadow-[0_0_40px_rgba(255,90,42,0.15)]"
         >
-          {/* CHANGED: Aspect Ratio ko thoda compact kar diya taaki overall height kam ho sake */}
           <div className="relative aspect-[4/3] w-full overflow-hidden lg:aspect-[4/3.2]">
-            <Image
-              ref={imageRef}
-              src={siteImages.homeIntroduction.src}
-              alt={siteImages.homeIntroduction.alt}
-              fill
-              sizes="(max-width:1024px) 100vw, 44vw"
-              className="object-cover"
-            />
+            <div ref={imageInnerRef} className="absolute inset-0 h-full w-full will-change-transform">
+              <Image
+                src={siteImages.homeIntroduction.src}
+                alt={siteImages.homeIntroduction.alt || "Introduction Preview"}
+                fill
+                sizes="(max-width:1024px) 100vw, 44vw"
+                className="object-cover"
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
             <p className="absolute bottom-5 left-5 text-[10px] uppercase tracking-[.18em] text-white/70">
               Concept · Detail · Delivery
@@ -212,14 +229,14 @@ export function CinematicIntro() {
           <div className="overflow-hidden">
             <p
               ref={eyebrowRef}
-              className="eyebrow text-[var(--accent,#ff5a2a)]"
+              className="eyebrow text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent,#ff5a2a)]"
             >
               Exhibition design, end to end
             </p>
           </div>
 
           {/* Heading - Word-by-Word Wave Reveal */}
-          <h2 className="mt-4 text-[clamp(2.2rem,4.2vw,4.5rem)] font-semibold leading-[1.02]">
+          <h2 className="mt-4 text-[clamp(2.2rem,4.2vw,4.5rem)] font-semibold leading-[1.02] tracking-tight">
             <div className="block">
               <WaveWordText
                 text="A clear idea, carried all the way"
@@ -227,7 +244,7 @@ export function CinematicIntro() {
                 wordsRef={title1WordsRef}
               />
             </div>
-            <div className="block mt-1">
+            <div className="mt-1 block">
               <WaveWordText
                 text="into the space."
                 className="text-[var(--accent,#ff5a2a)]"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import gsap from "gsap";
@@ -14,48 +14,84 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
   const [active, setActive] = useState(0);
   const mainContainerRef = useRef<HTMLDivElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
-  const rightPanelRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLDivElement | null>(null);
   const rightCardsRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useGSAP(
     () => {
-      // 1. PIN THE LEFT SIDE using ScrollTrigger
-      ScrollTrigger.create({
-        trigger: mainContainerRef.current,
-        start: "top 15%", // Pinned when section top hits 15% of viewport
-        end: "bottom 85%", // Releases when section bottom hits 85% of viewport
-        pin: leftPanelRef.current,
-        anticipatePin: 1, // Smooths out pinning
-        pinSpacing: false, // Prevents layout shifts
-        markers: false, // Set true only for debugging
-      });
+      if (!mainContainerRef.current || !leftPanelRef.current) return;
 
-      // 2. DETECT ACTIVE STEP during right-side scrolling
-      rightCardsRefs.current.forEach((card, index) => {
-        if (!card) return;
+      // matchMedia ensures pinning ONLY runs on desktop (lg breakpoint = 1024px),
+      // matching the lg:grid-cols-12 layout. On mobile the columns stack, so
+      // pinning the left panel there was causing it to overlap/jump over
+      // the right column instead of just scrolling normally.
+      const mm = gsap.matchMedia();
 
-        ScrollTrigger.create({
-          trigger: card,
-          start: "top center+=100", // Becomes active when card top is 100px past center
-          end: "bottom center+=100",
-          onToggle: (self) => {
-            if (self.isActive) {
-              setActive(index);
-            }
-          },
-          markers: false,
-        });
-      });
+      mm.add(
+        {
+          isDesktop: "(min-width: 1024px)",
+          isMobile: "(max-width: 1023px)",
+        },
+        (context) => {
+          const { isDesktop } = context.conditions as { isDesktop: boolean };
+
+          const cardTriggers: ScrollTrigger[] = [];
+          let pinTrigger: ScrollTrigger | null = null;
+
+          if (isDesktop) {
+            // 1. PIN THE LEFT SIDE — desktop only
+            pinTrigger = ScrollTrigger.create({
+              trigger: mainContainerRef.current,
+              start: "top 15%",
+              end: "bottom 85%",
+              pin: leftPanelRef.current,
+              anticipatePin: 1,
+              pinSpacing: false,
+              markers: false,
+            });
+          }
+
+          // 2. DETECT ACTIVE STEP during scrolling — runs on both, but
+          // thresholds are gentler on mobile since the left summary card
+          // sits above the steps instead of being pinned beside them.
+          rightCardsRefs.current.forEach((card, index) => {
+            if (!card) return;
+
+            const trigger = ScrollTrigger.create({
+              trigger: card,
+              start: isDesktop ? "top center+=100" : "top 75%",
+              end: isDesktop ? "bottom center+=100" : "bottom 25%",
+              onToggle: (self) => {
+                if (self.isActive) {
+                  setActive(index);
+                }
+              },
+              markers: false,
+            });
+            cardTriggers.push(trigger);
+          });
+
+          // cleanup for this matchMedia branch (runs automatically when the
+          // breakpoint flips, e.g. rotating a tablet or resizing a window)
+          return () => {
+            pinTrigger?.kill();
+            cardTriggers.forEach((t) => t.kill());
+          };
+        }
+      );
+
+      return () => {
+        mm.revert();
+      };
     },
-    { scope: mainContainerRef }
+    { scope: mainContainerRef, dependencies: [steps] }
   );
 
   const scrollToStep = (index: number) => {
-    // When clicking on a left-side nav item, scroll smoothly to the target card
     const targetStep = rightCardsRefs.current[index];
     if (targetStep) {
       window.scrollTo({
-        top: targetStep.getBoundingClientRect().top + window.scrollY - 120, // offset
+        top: targetStep.getBoundingClientRect().top + window.scrollY - 120,
         behavior: "smooth",
       });
     }
@@ -67,17 +103,15 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
     <div ref={mainContainerRef} className="relative w-full">
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-14 items-start">
         {/* =================================================================== */}
-        {/* LEFT COLUMN: GSAP PINNED PANEL                                    */}
+        {/* LEFT COLUMN: GSAP PINNED PANEL (desktop) / STATIC SUMMARY (mobile) */}
         {/* =================================================================== */}
         <div ref={leftPanelRef} className="lg:col-span-5 h-fit">
           <div className="space-y-6 py-2">
-            {/* Design tweak: Slightly smaller badge and text */}
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
               <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
               <span>How a project moves</span>
             </div>
 
-            {/* Title Reduced for small design */}
             <h2 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-bold leading-[1.1] tracking-tight text-white">
               A clear route from <br /> brief to build.
             </h2>
@@ -87,7 +121,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
               initial sketch right through to final installation.
             </p>
 
-            {/* Progressive Card Design: Slightly compacted */}
             <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] p-4 shadow-xl backdrop-blur-xl">
               <div className="flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-wider text-white/50">
                 <span className="flex items-center gap-1.5">
@@ -99,7 +132,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
                 </span>
               </div>
 
-              {/* Dynamic Fill Line */}
               <div className="relative mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] to-[#ff825c]"
@@ -108,7 +140,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
                 />
               </div>
 
-              {/* Compaction for small design */}
               <div className="mt-3.5 space-y-1">
                 {steps.map((stepName, idx) => {
                   const isCurrent = active === idx;
@@ -149,7 +180,7 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
                         </span>
                       )}
                     </button>
-                    );
+                  );
                 })}
               </div>
             </div>
@@ -157,7 +188,7 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
         </div>
 
         {/* =================================================================== */}
-        {/* RIGHT COLUMN: SCROLLABLE CARDS (Same layout)                    */}
+        {/* RIGHT COLUMN: SCROLLABLE CARDS                                     */}
         {/* =================================================================== */}
         <div ref={rightPanelRef} className="space-y-5 lg:col-span-7">
           {steps.map((stepText, i) => {
@@ -182,7 +213,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
                     : "border-white/10 bg-white/[0.015]"
                 }`}
               >
-                {/* Active Ambient Glow */}
                 <div
                   className={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/20 blur-3xl transition-opacity duration-300 ${
                     isActive ? "opacity-100" : "opacity-0"
@@ -214,7 +244,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
                   </AnimatePresence>
                 </div>
 
-                {/* Reduced font size for smaller design */}
                 <h3
                   className={`mt-6 text-xl font-bold tracking-tight transition-all duration-300 sm:text-2xl lg:text-[26px] ${
                     isActive ? "translate-x-1 text-white" : "text-white/60"

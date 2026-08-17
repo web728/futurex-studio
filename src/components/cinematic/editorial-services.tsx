@@ -9,7 +9,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { services } from "@/data/site";
 import { siteImages } from "@/data/site-images";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function EditorialServices() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -19,7 +21,7 @@ export function EditorialServices() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Kinetic Title Reveal (Only on scroll entry)
+      // 1. Kinetic Title Reveal (Only on initial scroll entry)
       if (titleTextRef.current) {
         gsap.fromTo(
           titleTextRef.current,
@@ -32,7 +34,7 @@ export function EditorialServices() {
             scrollTrigger: {
               trigger: titleTextRef.current,
               start: "top 85%",
-              toggleActions: "play none none reverse",
+              once: true,
             },
           }
         );
@@ -82,7 +84,7 @@ export function EditorialServices() {
             </h2>
           </div>
 
-          <p className="max-w-lg text-sm leading-relaxed text-white/60 lg:text-base lg:justify-self-end">
+          <p className="max-w-lg text-sm leading-relaxed text-white/60 lg:justify-self-end lg:text-base">
             Choose a complete design-and-build partnership or bring us into a
             specific stage. Every discipline stays aligned to the same spatial
             vision.
@@ -91,19 +93,32 @@ export function EditorialServices() {
 
         {/* Content Section */}
         <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          {/* Left Sticky Image Frame (Normal Smooth Fade Effect) */}
+          {/* Left Sticky Image Frame */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/15 bg-[#121313] shadow-2xl transition-all duration-500 lg:aspect-[4/5]">
-              {/* Smooth Image Crossfade */}
+              {/* Dynamic Image Crossfade Layer */}
               <div className="relative h-full w-full overflow-hidden">
-                <Image
-                  src={siteImages.homeServices.src}
-                  alt={services[activeIndex]?.title || "Services"}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  priority
-                  className="object-cover grayscale-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
-                />
+                {services.map((service, index) => {
+                  const serviceImage =
+                    (service as { image?: string }).image ||
+                    siteImages.homeServices?.src ||
+                    "";
+                  const isCurrent = activeIndex === index;
+
+                  return (
+                    <Image
+                      key={service.slug || index}
+                      src={serviceImage}
+                      alt={service.title || "Service Frame"}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 45vw"
+                      priority={index === 0}
+                      className={`object-cover grayscale-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0 ${
+                        isCurrent ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                      }`}
+                    />
+                  );
+                })}
               </div>
 
               {/* Gradient Protection Layer */}
@@ -128,7 +143,7 @@ export function EditorialServices() {
 
               return (
                 <article
-                  key={service.slug}
+                  key={service.slug || index}
                   ref={(el: HTMLDivElement | null) => {
                     if (el) {
                       serviceRowsRef.current.set(index, el);
@@ -158,7 +173,7 @@ export function EditorialServices() {
                             : "text-white/30 group-hover:text-white/60"
                         }`}
                       >
-                        {service.number}
+                        {service.number || `0${index + 1}`}
                       </span>
 
                       {/* Title & Accordion */}

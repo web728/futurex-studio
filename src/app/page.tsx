@@ -1,41 +1,60 @@
-import { FAQAccordion } from "@/components/site";
+import dynamic from "next/dynamic";
 import { faqs, projects, testimonials } from "@/data/site";
-import {
-  CinematicHero,
-  KineticTitle,
-  ProcessMotion,
-} from "@/components/motion";
-import {
-  CinematicCTA,
-  CinematicIntro,
-  EditorialServices,
-  FeaturedProjectStory,
-  CinematicProjectsTrack, 
-} from "@/components/cinematic";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
-import { GSAPCinematicReveal } from "@/components/motion/gsap-cinematic-reveal";
-import { WhyFuturexSection } from "@/components/why-futurex";
-import { CTA } from "@/components/CTA";
-import { TestimonialsSection } from "@/components/testimonials/TestimonialsSection";
+
+// Above the fold - Direct load for fast initial render
+import { CinematicHero, KineticTitle } from "@/components/motion";
+
+// Below the fold - Lazy loaded Dynamic Imports (Without ssr: false)
+const CinematicIntro = dynamic(
+  () => import("@/components/cinematic").then((m) => m.CinematicIntro)
+);
+
+const FeaturedProjectStory = dynamic(
+  () => import("@/components/cinematic").then((m) => m.FeaturedProjectStory)
+);
+
+const EditorialServices = dynamic(
+  () => import("@/components/cinematic").then((m) => m.EditorialServices)
+);
+
+const ProcessMotion = dynamic(
+  () => import("@/components/motion").then((m) => m.ProcessMotion)
+);
+
+const WhyFuturexSection = dynamic(
+  () => import("@/components/why-futurex").then((m) => m.WhyFuturexSection)
+);
+
+const TestimonialsSection = dynamic(
+  () => import("@/components/testimonials/TestimonialsSection").then((m) => m.TestimonialsSection)
+);
+
+const GSAPCinematicReveal = dynamic(
+  () => import("@/components/motion/gsap-cinematic-reveal").then((m) => m.GSAPCinematicReveal)
+);
+
+const FAQAccordion = dynamic(
+  () => import("@/components/site").then((m) => m.FAQAccordion)
+);
+
+const CTA = dynamic(
+  () => import("@/components/CTA").then((m) => m.CTA)
+);
 
 export default function Home() {
   return (
     <SmoothScrollProvider>
       <CinematicHero />
+
       <CinematicIntro />
       <FeaturedProjectStory projects={projects} />
       <EditorialServices />
 
-      {/* Reduced Height Process Section */}
+      {/* Process Section */}
       <section className="relative overflow-x-hidden bg-[#0b0b0f] text-white">
-        {/* Ambient Canvas Glow Grid */}
         <div
-          className="absolute inset-0 z-0 opacity-20 pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(#ffffff10 1px, transparent 1px), linear-gradient(90deg, #ffffff10 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
+          className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[linear-gradient(#ffffff10_1px,transparent_1px),linear-gradient(90deg,#ffffff10_1px,transparent_1px)] bg-[size:60px_60px]"
         />
 
         <div className="container relative z-10 py-12 lg:py-20">
@@ -56,7 +75,7 @@ export default function Home() {
 
       <TestimonialsSection testimonials={testimonials} />
 
-      {/* FAQ */}
+      {/* FAQ Section */}
       <section className="py-24 lg:py-36">
         <div className="container grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
           <div>

@@ -98,17 +98,7 @@ const PortfolioCard = memo(({
       <InteractiveTiltCard className="h-full w-full">
         <div data-card-inner className="relative h-full w-full overflow-hidden">
           
-          {/* Architectural Overlay Blueprint Lines on Hover */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <svg className="absolute inset-0 h-full w-full stroke-[var(--accent)]/30" strokeWidth="1">
-              <line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="4 4" />
-              <line x1="100%" y1="0" x2="0" y2="100%" strokeDasharray="4 4" />
-            </svg>
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md border border-white/10 text-[9px] font-mono tracking-widest text-[var(--accent)]">
-              <Box className="h-2.5 w-2.5" />
-              <span>SPATIAL // 0{idx + 1}</span>
-            </div>
-          </div>
+       
 
           {/* Optimized Next Image */}
           <Image
@@ -134,9 +124,6 @@ const PortfolioCard = memo(({
                     {project.category}
                   </span>
                 </div>
-                <h3 className="display text-lg sm:text-xl font-bold tracking-tight text-white group-hover:text-[var(--accent)] transition-colors duration-300">
-                  {project.title}
-                </h3>
               </div>
               
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:bg-[var(--accent)] group-hover:text-black group-hover:border-transparent">
@@ -491,6 +478,7 @@ export function CinematicPortfolio({ projects }: PortfolioProps) {
                     className="max-h-[75vh] w-auto max-w-full object-contain shadow-2xl rounded"
                     draggable={false}
                   />
+                  
                 </motion.div>
               </motion.div>
 

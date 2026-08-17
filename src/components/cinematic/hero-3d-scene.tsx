@@ -6,7 +6,7 @@ import { Environment, Lightformer } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 
-const ORB_COUNT = 40;
+const ORB_COUNT = 36; // Reduced count slightly for optimized frame-rate
 const REPEL_RADIUS = 2.4;
 const REPEL_STRENGTH = 4.2;
 const RETURN_SPEED = 0.045;
@@ -86,7 +86,8 @@ function InteractiveFloatingOrbs() {
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, ORB_COUNT]}>
-      <sphereGeometry args={[1, 16, 16]} />
+      {/* Reduced poly segments (12x12) for smoother performance */}
+      <sphereGeometry args={[1, 12, 12]} />
       <meshPhysicalMaterial
         color="#e84c1c"
         emissive="#e84c1c"
@@ -106,7 +107,11 @@ export function Hero3DScene() {
       <Canvas
         camera={{ position: [0, 0, 6.5], fov: 45 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={{ 
+          antialias: true, 
+          powerPreference: "high-performance",
+          alpha: true 
+        }}
       >
         <ambientLight intensity={0.4} />
         <pointLight position={[10, 10, 10]} intensity={1.5} color="#ffffff" />
@@ -114,12 +119,13 @@ export function Hero3DScene() {
 
         <InteractiveFloatingOrbs />
 
-        <Environment background={false} resolution={256}>
+        <Environment background={false} resolution={128}>
           <Lightformer form="rect" intensity={5} color="#e84c1c" position={[4, 3, 2]} scale={[5, 5, 1]} />
           <Lightformer form="rect" intensity={3} color="#4fc3ff" position={[-4, -2, -2]} scale={[6, 6, 1]} />
         </Environment>
 
-        <EffectComposer>
+        {/* Disabled extra AA inside EffectComposer for 60FPS lock */}
+        <EffectComposer multisampling={0}>
           <Bloom intensity={0.8} luminanceThreshold={0.4} luminanceSmoothing={0.9} />
           <Vignette eskil={false} offset={0.1} darkness={0.6} />
         </EffectComposer>
