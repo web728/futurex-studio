@@ -2,12 +2,11 @@
 
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Sparkles } from "lucide-react";
+import { CheckCircle2, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
-// Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
 export function ProcessMotion({ steps }: { steps: string[] }) {
@@ -17,14 +16,11 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
   const rightPanelRef = useRef<HTMLDivElement | null>(null);
   const rightCardsRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // ---------- DESKTOP: Original GSAP pinning animation (EXACT UNCHANGED) ----------
   useGSAP(
     () => {
       if (!mainContainerRef.current || !leftPanelRef.current) return;
 
-      // matchMedia ensures pinning ONLY runs on desktop (lg breakpoint = 1024px),
-      // matching the lg:grid-cols-12 layout. On mobile the columns stack, so
-      // pinning the left panel there was causing it to overlap/jump over
-      // the right column instead of just scrolling normally.
       const mm = gsap.matchMedia();
 
       mm.add(
@@ -51,9 +47,7 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
             });
           }
 
-          // 2. DETECT ACTIVE STEP during scrolling — runs on both, but
-          // thresholds are gentler on mobile since the left summary card
-          // sits above the steps instead of being pinned beside them.
+          // 2. DETECT ACTIVE STEP during scrolling (Desktop)
           rightCardsRefs.current.forEach((card, index) => {
             if (!card) return;
 
@@ -71,8 +65,6 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
             cardTriggers.push(trigger);
           });
 
-          // cleanup for this matchMedia branch (runs automatically when the
-          // breakpoint flips, e.g. rotating a tablet or resizing a window)
           return () => {
             pinTrigger?.kill();
             cardTriggers.forEach((t) => t.kill());
@@ -99,12 +91,127 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
 
   const activeProgressPercent = Math.round(((active + 1) / steps.length) * 100);
 
+  const nextMobileStep = () => {
+    setActive((prev) => (prev < steps.length - 1 ? prev + 1 : 0));
+  };
+
+  const prevMobileStep = () => {
+    setActive((prev) => (prev > 0 ? prev - 1 : steps.length - 1));
+  };
+
   return (
     <div ref={mainContainerRef} className="relative w-full">
-      <div className="grid gap-10 lg:grid-cols-12 lg:gap-14 items-start">
-        {/* =================================================================== */}
-        {/* LEFT COLUMN: GSAP PINNED PANEL (desktop) / STATIC SUMMARY (mobile) */}
-        {/* =================================================================== */}
+      {/* =================================================================== */}
+      {/* MOBILE ONLY: APP-LIKE SWIPEABLE PROCESS CARD                       */}
+      {/* =================================================================== */}
+      <div className="block lg:hidden">
+        {/* Mobile Header */}
+        <div className="mb-6 space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
+            <span>How a project moves</span>
+          </div>
+
+          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            A clear route from brief to build.
+          </h2>
+        </div>
+
+        {/* Mobile Card Layout with Slide Animation */}
+        <div className="relative overflow-hidden rounded-2xl border border-[var(--accent,#ff5a2a)]/40 bg-[#0d0e10] p-6 shadow-2xl backdrop-blur-2xl">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/15 blur-2xl" />
+
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent,#ff5a2a)] font-mono text-[10px] font-bold text-black">
+                0{active + 1}
+              </span>
+              <span className="font-mono text-[11px] font-bold tracking-widest text-[var(--accent,#ff5a2a)] uppercase">
+                STAGE 0{active + 1}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 rounded-full border border-[var(--accent,#ff5a2a)]/40 bg-[var(--accent,#ff5a2a)]/10 px-2.5 py-0.5 font-mono text-[9px] text-[var(--accent,#ff5a2a)]">
+              <span className="h-1.5 w-1.5 rounded-full animate-ping bg-[var(--accent,#ff5a2a)]" />
+              IN PROGRESS
+            </div>
+          </div>
+
+          {/* Animated Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="py-6"
+            >
+              <h3 className="text-xl font-bold tracking-tight text-white">
+                {steps[active]}
+              </h3>
+
+              <p className="mt-3 text-xs leading-relaxed text-white/60">
+                Detailed execution phase ensuring alignment with design rules, venue
+                constraints, and production benchmarks.
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Bottom Progress Bar */}
+          <div className="relative h-1 w-full overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] to-[#ff825c]"
+              animate={{ width: `${activeProgressPercent}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+
+          {/* Mobile Navigation Footer Controls */}
+          <div className="mt-5 flex items-center justify-between pt-1">
+            <button
+              type="button"
+              onClick={prevMobileStep}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all active:scale-90"
+              aria-label="Previous step"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {/* Step Indicators */}
+            <div className="flex items-center gap-1.5">
+              {steps.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActive(idx)}
+                  aria-label={`Go to step ${idx + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    active === idx
+                      ? "w-5 bg-[var(--accent,#ff5a2a)]"
+                      : "w-1.5 bg-white/20"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={nextMobileStep}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all active:scale-90"
+              aria-label="Next step"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* =================================================================== */}
+      {/* DESKTOP ONLY: EXACT ORIGINAL GSAP PINNED SCROLL ANIMATION           */}
+      {/* =================================================================== */}
+      <div className="hidden lg:grid lg:grid-cols-12 lg:gap-14 items-start">
+        {/* LEFT COLUMN: GSAP PINNED PANEL */}
         <div ref={leftPanelRef} className="lg:col-span-5 h-fit">
           <div className="space-y-6 py-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
@@ -187,9 +294,7 @@ export function ProcessMotion({ steps }: { steps: string[] }) {
           </div>
         </div>
 
-        {/* =================================================================== */}
-        {/* RIGHT COLUMN: SCROLLABLE CARDS                                     */}
-        {/* =================================================================== */}
+        {/* RIGHT COLUMN: SCROLLABLE CARDS */}
         <div ref={rightPanelRef} className="space-y-5 lg:col-span-7">
           {steps.map((stepText, i) => {
             const isActive = active === i;

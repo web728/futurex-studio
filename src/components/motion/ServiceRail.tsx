@@ -78,45 +78,22 @@ export function ServiceRail({ items }: ServiceRailProps) {
     return () => observer.disconnect();
   }, [items, scrollToActiveBtn]);
 
-  const handleClick = (slug: string) => {
-    setActive(slug);
-    scrollToActiveBtn(slug);
-
-    const element = document.getElementById(slug);
-    if (element) {
-      isManualScrolling.current = true;
-      const offset = 90;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: "smooth",
-      });
-
-      setTimeout(() => {
-        isManualScrolling.current = false;
-      }, 700);
-    }
-  };
-
   return (
     <div className="sticky top-0 z-40 w-full overflow-hidden border-b border-white/10 bg-[#060709]/95 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
       
-  
-      {/* 2. Ultra-Premium Cross Ticker Stage */}
-      <div className="relative h-24 my-2 overflow-hidden pointer-events-none select-none flex items-center justify-center">
-        
+      {/* Ultra-Premium Cross Ticker Stage */}
+      <div className="relative h-20 sm:h-24 my-2 overflow-hidden pointer-events-none select-none flex items-center justify-center w-full">
+
         {/* Background Radial Glow */}
-        <div className="absolute size-64 bg-[#FF5A2A]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute size-48 sm:size-64 bg-[#FF5A2A]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Ribbon 2 (Dark Cyber Ribbon - Diagonal Bottom Layer) */}
-        <div className="absolute w-[120%] rotate-2 bg-[#0d0f14] text-[#FF5A2A] py-3 border-y border-[#FF5A2A]/40 shadow-2xl z-10">
-          <div className="flex w-max animate-ticker-right whitespace-nowrap items-center font-mono font-bold text-xs tracking-[0.25em] uppercase">
-            {/* Duplicated 4x for continuous infinite loop without gaps */}
-            {Array.from({ length: 4 }).flatMap(() =>
+        <div className="absolute w-[150%] sm:w-[120%] rotate-2 bg-[#0d0f14] text-[#FF5A2A] py-2 sm:py-3 border-y border-[#FF5A2A]/40 shadow-2xl z-10">
+          <div className="flex w-max animate-ticker-right whitespace-nowrap items-center font-mono font-bold text-[10px] sm:text-xs tracking-[0.2em] uppercase">
+            {Array.from({ length: 4 }).flatMap((_, dupIdx) =>
               items.map((item, idx) => (
-                <div key={`dark-ribbon-${idx}-${Math.random()}`} className="flex items-center">
-                  <span className="px-6 flex items-center gap-3">
+                <div key={`dark-ribbon-${dupIdx}-${idx}`} className="flex items-center">
+                  <span className="px-3 sm:px-6 flex items-center gap-2 sm:gap-3">
                     <CrosshairIcon />
                     <span className="text-white/90 font-sans font-black">{item.title}</span>
                   </span>
@@ -128,14 +105,13 @@ export function ServiceRail({ items }: ServiceRailProps) {
         </div>
 
         {/* Ribbon 1 (Accent Orange Ribbon - Diagonal Top Layer) */}
-        <div className="absolute w-[120%] -rotate-2 bg-[#FF5A2A] text-black py-3 shadow-[0_10px_40px_rgba(255,90,42,0.4)] z-20 border-y border-black/20">
+        <div className="absolute w-[150%] sm:w-[120%] -rotate-2 bg-[#FF5A2A] text-black py-2 sm:py-3 shadow-[0_10px_40px_rgba(255,90,42,0.4)] z-20 border-y border-black/20">
           <div className="flex w-max animate-ticker-left whitespace-nowrap items-center font-black text-xs sm:text-sm tracking-widest uppercase">
-            {/* Duplicated 4x for continuous infinite loop without gaps */}
-            {Array.from({ length: 4 }).flatMap(() =>
+            {Array.from({ length: 4 }).flatMap((_, dupIdx) =>
               items.map((item, idx) => (
-                <div key={`orange-ribbon-${idx}-${Math.random()}`} className="flex items-center">
-                  <span className="px-6 flex items-center gap-3">
-                    <span className="font-mono text-[10px] bg-black/10 px-1.5 py-0.5 rounded font-black">
+                <div key={`orange-ribbon-${dupIdx}-${idx}`} className="flex items-center">
+                  <span className="px-3 sm:px-6 flex items-center gap-2 sm:gap-3">
+                    <span className="font-mono text-[9px] sm:text-[10px] bg-black/10 px-1.5 py-0.5 rounded font-black">
                       {item.number}
                     </span>
                     <span className="text-black">{item.title}</span>

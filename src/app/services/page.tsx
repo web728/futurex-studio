@@ -127,64 +127,9 @@ export default function Services() {
 
       if (prefersReducedMotion) return;
 
-      const serviceBlocks = gsap.utils.toArray<HTMLElement>(".service-block");
-
-      serviceBlocks.forEach((block) => {
-        gsap.fromTo(
-          block,
-          { y: 60, opacity: 0, scale: 0.97 },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 1.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: block,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      });
-
-      const cardCleanupFns: (() => void)[] = [];
-
-      serviceBlocks.forEach((card) => {
-        const rotateX = gsap.quickTo(card, "rotateX", {
-          duration: 0.6,
-          ease: "power3.out",
-        });
-        const rotateY = gsap.quickTo(card, "rotateY", {
-          duration: 0.6,
-          ease: "power3.out",
-        });
-
-        const handleMouseMove = (e: MouseEvent) => {
-          const rect = card.getBoundingClientRect();
-          const px = (e.clientX - rect.left) / rect.width;
-          const py = (e.clientY - rect.top) / rect.height;
-
-          rotateY((px - 0.5) * 3.5);
-          rotateX((0.5 - py) * 3.5);
-
-          card.style.setProperty("--mx", `${px * 100}%`);
-          card.style.setProperty("--my", `${py * 100}%`);
-        };
-
-        const handleMouseLeave = () => {
-          rotateX(0);
-          rotateY(0);
-        };
-
-        card.addEventListener("mousemove", handleMouseMove);
-        card.addEventListener("mouseleave", handleMouseLeave);
-
-        cardCleanupFns.push(() => {
-          card.removeEventListener("mousemove", handleMouseMove);
-          card.removeEventListener("mouseleave", handleMouseLeave);
-        });
-      });
+      // NOTE: removed a dead ".service-block" tilt/mousemove effect here —
+      // no element in the tree used that class, so it was pure wasted work
+      // running on every page load (extra GSAP context + listeners for nothing).
 
       gsap.fromTo(
         ".section-underline",
@@ -217,8 +162,6 @@ export default function Services() {
           }
         );
       }
-
-      return () => cardCleanupFns.forEach((fn) => fn());
     }, containerRef);
 
     return () => ctx.revert();
