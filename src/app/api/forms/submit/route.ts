@@ -3,43 +3,17 @@ import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import { Readable } from "stream";
 
-// Helper function to decode Base64 JSON safely
+// Safe Base64 Credentials Parser
 function getCredentialsFromBase64(envVar: string | undefined) {
   if (!envVar) return null;
-  const decoded = Buffer.from(envVar, "base64").toString("utf-8");
-  return JSON.parse(decoded);
+  try {
+    const decoded = Buffer.from(envVar, "base64").toString("utf-8");
+    return JSON.parse(decoded);
+  } catch (err) {
+    console.error("Base64 Parse Error:", err);
+    return null;
+  }
 }
-
-// 1. Google Sheets Auth
-const sheetsCreds = getCredentialsFromBase64(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64);
-const sheetsAuth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: sheetsCreds?.client_email,
-    private_key: sheetsCreds?.private_key,
-  },
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-});
-const sheets = google.sheets({ version: "v4", auth: sheetsAuth });
-
-// 2. Google Drive Auth (100% Isolated)
-const driveCreds = getCredentialsFromBase64(process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64);
-const driveAuth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: driveCreds?.client_email,
-    private_key: driveCreds?.private_key,
-  },
-  scopes: ["https://www.googleapis.com/auth/drive.file"],
-});
-const drive = google.drive({ version: "v3", auth: driveAuth });
-
-// 3. Nodemailer Setup
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
 
 export async function POST(req: Request) {
   try {
@@ -57,7 +31,9 @@ export async function POST(req: Request) {
     let fileBuffer: Buffer | null = null;
     let customFileName = "";
 
-    // A. File Upload to Drive
+    // -------------------------------------------------------------
+    // A. GOOGLE DRIVE UPLOAD LOGIC
+    // -------------------------------------------------------------
     if (file && file.size > 0) {
       const bytes = await file.arrayBuffer();
       fileBuffer = Buffer.from(bytes);
@@ -66,15 +42,30 @@ export async function POST(req: Request) {
       const sanitizedName = fullName.replace(/[^a-zA-Z0-9]/g, "_");
       customFileName = `${sanitizedName}_${Date.now()}.${extension}`;
 
-      if (process.env.GOOGLE_DRIVE_FOLDER_ID) {
+      // Environment variable fallback check
+      const driveB64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64 || process.env.GOOGLE_DRIVE_PRIVATE_KEY;
+      const driveCreds = getCredentialsFromBase64(driveB64);
+
+      if (driveCreds && process.env.GOOGLE_DRIVE_FOLDER_ID) {
+        const driveAuth = new google.auth.GoogleAuth({
+          credentials: {
+            client_email: driveCreds.client_email,
+            private_key: driveCreds.private_key,
+          },
+          // Scope FIXED to full drive access
+          scopes: ["https://www.googleapis.com/auth/drive"],
+        });
+
+        const drive = google.drive({ version: "v3", auth: driveAuth });
         const fileStream = Readable.from(fileBuffer);
+
         const driveResponse = await drive.files.create({
           requestBody: {
             name: customFileName,
             parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
           },
           media: {
-            mimeType: file.type,
+            mimeType: file.type || "application/octet-stream",
             body: fileStream,
           },
           fields: "id, webViewLink",
@@ -84,8 +75,22 @@ export async function POST(req: Request) {
       }
     }
 
-    // B. Append Row to Google Sheet
-    if (process.env.GOOGLE_SPREADSHEET_ID) {
+    // -------------------------------------------------------------
+    // B. GOOGLE SHEETS APPEND LOGIC
+    // -------------------------------------------------------------
+    const sheetsCreds = getCredentialsFromBase64(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64);
+
+    if (sheetsCreds && process.env.GOOGLE_SPREADSHEET_ID) {
+      const sheetsAuth = new google.auth.GoogleAuth({
+        credentials: {
+          client_email: sheetsCreds.client_email,
+          private_key: sheetsCreds.private_key,
+        },
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+
+      const sheets = google.sheets({ version: "v4", auth: sheetsAuth });
+
       await sheets.spreadsheets.values.append({
         spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
         range: `${process.env.GOOGLE_SHEET_NAME || "Sheet1"}!A:G`,
@@ -99,14 +104,24 @@ export async function POST(req: Request) {
               email,
               phone,
               services,
-              driveFileUrl || "No File",
+              driveFileUrl || "No File Attached",
             ],
           ],
         },
       });
     }
 
-    // C. Send Mail via Nodemailer
+    // -------------------------------------------------------------
+    // C. NODEMAILER EMAIL LOGIC
+    // -------------------------------------------------------------
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
     await transporter.sendMail({
       from: `"${fullName}" <${process.env.GMAIL_USER}>`,
       to: process.env.NOTIFY_EMAIL_1 || process.env.GMAIL_USER,
@@ -136,10 +151,10 @@ export async function POST(req: Request) {
       success: true,
       message: "Submission successful",
     });
-  } catch (error) {
-    console.error("Submission Error:", error);
+  } catch (error: any) {
+    console.error("Submission Error Details:", error);
     return NextResponse.json(
-      { success: false, message: "Submission failed" },
+      { success: false, message: error?.message || "Submission failed" },
       { status: 500 }
     );
   }
