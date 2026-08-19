@@ -105,13 +105,13 @@ export function CinematicHero() {
 
         <div ref={ctaRef} className="mt-8 flex flex-wrap gap-4 will-change-transform">
           <a
-            href="#projects"
+            href="/projects"
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white px-7 py-3 text-sm font-medium text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
           >
             <span>Explore Work</span>
           </a>
           <a
-            href="#contact"
+            href="/contact"
             className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 py-3 text-sm font-medium text-white transition-all duration-300 hover:border-white hover:bg-white/10"
           >
             Get in Touch

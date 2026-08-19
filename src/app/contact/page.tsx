@@ -47,7 +47,8 @@ export default function Contact() {
       <section className="relative py-12 lg:py-20">
         <ContactAmbientBg />
 
-        <div className="contact-grid container relative z-10 mx-auto grid gap-8 px-6 lg:grid-cols-[0.8fr_1.2fr]">
+        {/* Change made here: flex flex-col-reverse for mobile, grid for lg screen */}
+        <div className="contact-grid container relative z-10 mx-auto flex flex-col-reverse gap-8 px-6 lg:grid lg:grid-cols-[0.8fr_1.2fr]">
           <ContactSidebar />
           <ContactFormSection />
         </div>
