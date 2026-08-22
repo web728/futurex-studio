@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     let customFileName = "";
 
     // -------------------------------------------------------------
-    // A. GOOGLE DRIVE UPLOAD LOGIC
+    // A. GOOGLE DRIVE UPLOAD LOGIC (FIXED)
     // -------------------------------------------------------------
     if (file && file.size > 0) {
       const bytes = await file.arrayBuffer();
@@ -42,8 +42,7 @@ export async function POST(req: Request) {
       const sanitizedName = fullName.replace(/[^a-zA-Z0-9]/g, "_");
       customFileName = `${sanitizedName}_${Date.now()}.${extension}`;
 
-      // Environment variable fallback check
-      const driveB64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64 || process.env.GOOGLE_DRIVE_PRIVATE_KEY;
+      const driveB64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64 || process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64;
       const driveCreds = getCredentialsFromBase64(driveB64);
 
       if (driveCreds && process.env.GOOGLE_DRIVE_FOLDER_ID) {
@@ -52,8 +51,7 @@ export async function POST(req: Request) {
             client_email: driveCreds.client_email,
             private_key: driveCreds.private_key,
           },
-          // Scope FIXED to full drive access
-          scopes: ["https://www.googleapis.com/auth/drive"],
+          scopes: ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"],
         });
 
         const drive = google.drive({ version: "v3", auth: driveAuth });
@@ -62,12 +60,14 @@ export async function POST(req: Request) {
         const driveResponse = await drive.files.create({
           requestBody: {
             name: customFileName,
-            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID], // Folder ID: 1zogJk9PZTfmwJg0A5igV9OlqfqoQqd_m
           },
           media: {
             mimeType: file.type || "application/octet-stream",
             body: fileStream,
           },
+          // ⚠️ KEY FIXES FOR SERVICE ACCOUNT STORAGE ERROR:
+          supportsAllDrives: true,
           fields: "id, webViewLink",
         });
 
