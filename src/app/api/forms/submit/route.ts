@@ -31,49 +31,52 @@ export async function POST(req: Request) {
     let fileBuffer: Buffer | null = null;
     let customFileName = "";
 
-    // -------------------------------------------------------------
-    // A. GOOGLE DRIVE UPLOAD LOGIC (FIXED)
-    // -------------------------------------------------------------
-    if (file && file.size > 0) {
-      const bytes = await file.arrayBuffer();
-      fileBuffer = Buffer.from(bytes);
+   // -------------------------------------------------------------
+// A. GOOGLE DRIVE UPLOAD LOGIC
+// -------------------------------------------------------------
+if (file && file.size > 0) {
+  const bytes = await file.arrayBuffer();
+  fileBuffer = Buffer.from(bytes);
 
-      const extension = file.name.split(".").pop();
-      const sanitizedName = fullName.replace(/[^a-zA-Z0-9]/g, "_");
-      customFileName = `${sanitizedName}_${Date.now()}.${extension}`;
+  const extension = file.name.split(".").pop();
+  const sanitizedName = fullName.replace(/[^a-zA-Z0-9]/g, "_");
+  customFileName = `${sanitizedName}_${Date.now()}.${extension}`;
 
-      const driveB64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64 || process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64;
-      const driveCreds = getCredentialsFromBase64(driveB64);
+  const driveB64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_BASE64 || process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64;
+  const driveCreds = getCredentialsFromBase64(driveB64);
 
-      if (driveCreds && process.env.GOOGLE_DRIVE_FOLDER_ID) {
-        const driveAuth = new google.auth.GoogleAuth({
-          credentials: {
-            client_email: driveCreds.client_email,
-            private_key: driveCreds.private_key,
-          },
-          scopes: ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"],
-        });
+  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || "1zogJk9PZTfmwJg0A5igV9OlqfqoQqd_m";
 
-        const drive = google.drive({ version: "v3", auth: driveAuth });
-        const fileStream = Readable.from(fileBuffer);
+  if (driveCreds) {
+    const driveAuth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: driveCreds.client_email,
+        private_key: driveCreds.private_key,
+      },
+      scopes: ["https://www.googleapis.com/auth/drive"],
+    });
 
-        const driveResponse = await drive.files.create({
-          requestBody: {
-            name: customFileName,
-            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID], // Folder ID: 1zogJk9PZTfmwJg0A5igV9OlqfqoQqd_m
-          },
-          media: {
-            mimeType: file.type || "application/octet-stream",
-            body: fileStream,
-          },
-          // ⚠️ KEY FIXES FOR SERVICE ACCOUNT STORAGE ERROR:
-          supportsAllDrives: true,
-          fields: "id, webViewLink",
-        });
+    const drive = google.drive({ version: "v3", auth: driveAuth });
+    const fileStream = Readable.from(fileBuffer);
 
-        driveFileUrl = driveResponse.data.webViewLink || "";
-      }
-    }
+    const driveResponse = await drive.files.create({
+      requestBody: {
+        name: customFileName,
+        parents: [folderId],
+      },
+      media: {
+        mimeType: file.type || "application/octet-stream",
+        body: fileStream,
+      },
+      // ⚠️ In dono flags ko TRUE rakhna mandatory hai
+      supportsAllDrives: true,
+      ignoreDefaultVisibility: true,
+      fields: "id, webViewLink",
+    });
+
+    driveFileUrl = driveResponse.data.webViewLink || "";
+  }
+}
 
     // -------------------------------------------------------------
     // B. GOOGLE SHEETS APPEND LOGIC
