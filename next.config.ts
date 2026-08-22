@@ -27,7 +27,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Transpile heavy 3D modules to reduce bundler heap allocation
   transpilePackages: [
     "three",
     "@react-three/fiber",
@@ -36,10 +35,10 @@ const nextConfig: NextConfig = {
     "gsap",
   ],
 
-  // Prevents node worker OOM during static compilation
   productionBrowserSourceMaps: false,
 
   images: {
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
