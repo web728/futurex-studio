@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useEffect, useState } from "react";
-import { Sparkles, Zap, Shield, ArrowRight } from "lucide-react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import Link from "next/link";
+import { Sparkles, Zap, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SplitType from "split-type";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -26,16 +25,16 @@ const defaultCapabilities: CapabilityFeature[] = [
     badge: "Execution Speed",
     title: "Zero-Delay On-Site Deployment",
     description:
-      "Precision pre-fabrication combined with modular rapid-assembly protocols ensures seamless delivery before exhibition deadlines.",
+      "Precision pre-fabrication combined with modular rapid-assembly protocols ensures seamless delivery ahead of exhibition deadlines.",
     statNumber: "< 12h",
     statLabel: "Average Setup Time",
   },
   {
     id: "quality",
     badge: "Material Standards",
-    title: "Surgical Attention to Details",
+    title: "Surgical Attention to Detail",
     description:
-      "Premium tactile finishes, structural frames, and flawless illumination engineered for maximum structural integrity.",
+      "Premium tactile finishes, high-tensile structural framework, and calibrated lighting engineered for complete structural integrity.",
     statNumber: "100%",
     statLabel: "QC Inspection Pass Rate",
   },
@@ -44,260 +43,127 @@ const defaultCapabilities: CapabilityFeature[] = [
     badge: "Global Scalability",
     title: "Adaptive Modular Footprints",
     description:
-      "From compact 9m² shells to massive multi-tier 500m² pavilions, our design system retains high visual impact.",
+      "From compact 9m² bespoke shells to complex multi-tier 500m² country pavilions, our design language scales without compromise.",
     statNumber: "20+",
     statLabel: "Pavilions Built",
   },
 ];
 
-/* ============================================================================
-   Interactive 3D Card Component (Compact Layout + Mouse Spotlight)
-   ============================================================================ */
-function InteractiveCapabilityCard({
-  item,
-  idx,
-}: {
-  item: CapabilityFeature;
-  idx: number;
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const springConfig = { stiffness: 150, damping: 20 };
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), springConfig);
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), springConfig);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    cardRef.current.style.setProperty("--mouse-x", `${mouseX}px`);
-    cardRef.current.style.setProperty("--mouse-y", `${mouseY}px`);
-
-    x.set(mouseX / rect.width - 0.5);
-    y.set(mouseY / rect.height - 0.5);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
-      }}
-      className="promise-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]/50 p-5 backdrop-blur-lg transition-colors duration-300 hover:border-[var(--accent)]/30 hover:bg-[var(--elevated)] perspective-1000 lg:p-6"
-    >
-      {/* 1. Dynamic Mouse Spotlight Overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,90,42,0.06), transparent 80%)",
-        }}
-      />
-
-      {/* 2. Glass Specular Highlight Layer */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, rgba(255,255,255,0.02) 100%)",
-          translateX: useTransform(x, [-0.5, 0.5], [-15, 15]),
-          translateY: useTransform(y, [-0.5, 0.5], [-15, 15]),
-        }}
-      />
-
-      {/* 3. Watermark Index */}
-      <span
-        className="font-display pointer-events-none absolute -right-1 top-0 select-none text-[6.5rem] font-bold leading-none text-[var(--text)]/[0.015] transition-colors duration-300 group-hover:text-[var(--accent)]/10"
-        style={{ transform: "translateZ(-10px)" }}
-      >
-        0{idx + 1}
-      </span>
-
-      {/* 4. Top Content */}
-      <div className="relative z-20" style={{ transform: "translateZ(20px)" }}>
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--background)] px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
-            <Zap size={10} />
-            {item.badge}
-          </span>
-
-          <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-        </div>
-
-        {/* Title with Descender Cutoff Fix */}
-        <h3 className="card-title font-display mt-4 text-lg font-semibold leading-snug tracking-tight text-[var(--text)] sm:text-xl pb-0.5">
-          {item.title}
-        </h3>
-
-        <p className="card-desc mt-2 text-xs leading-relaxed text-[var(--secondary)] font-normal opacity-90 sm:text-sm">
-          {item.description}
-        </p>
-      </div>
-
-      {/* 5. Bottom Stat Block */}
-      <div
-        className="relative z-20 mt-6 border-t border-[var(--border)] pt-4"
-        style={{ transform: "translateZ(10px)" }}
-      >
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <span className="stat-number font-display text-3xl font-semibold text-[var(--text)] sm:text-4xl">
-              {item.statNumber}
-            </span>
-            <p className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-[var(--muted)]">
-              {item.statLabel}
-            </p>
-          </div>
-
-          <MagneticWrapper>
-            <div className="rounded-full border border-[var(--border)] bg-[var(--background)] p-2.5 text-[var(--secondary)] transition-all duration-300 group-hover:scale-110 group-hover:border-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-black">
-              <ArrowRight size={15} />
-            </div>
-          </MagneticWrapper>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ============================================================================
-   Magnetic Wrapper Component
-   ============================================================================ */
-function MagneticWrapper({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setPosition({ x: x * 0.25, y: y * 0.25 });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
-
-  useEffect(() => {
-    const node = ref.current;
-    if (node) {
-      node.addEventListener("mousemove", handleMouseMove);
-      node.addEventListener("mouseleave", handleMouseLeave);
-      return () => {
-        node.removeEventListener("mousemove", handleMouseMove);
-        node.removeEventListener("mouseleave", handleMouseLeave);
-      };
-    }
-  }, []);
-
-  return (
-    <motion.div
-      ref={ref}
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: "spring", stiffness: 200, damping: 15, mass: 0.1 }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ============================================================================
-   Main Section Component (Compact execution)
-   ============================================================================ */
 export function ExecutionPromiseSection({
   customCapabilities,
 }: {
   customCapabilities?: CapabilityFeature[];
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const svgLinesRef = useRef<SVGSVGElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const cardsGridRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   const list = customCapabilities || defaultCapabilities;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const ctx = gsap.context(() => {
-      if (headingRef.current) {
-      const splitHeading = new SplitType(headingRef.current, {
-  types: ["chars", "words"],
-});
-
-        if (splitHeading.chars) {
-          gsap.from(splitHeading.chars, {
+      // 1. Header Reveal
+      const headerNodes = headerRef.current?.querySelectorAll(".exec-head-node");
+      if (headerNodes && headerNodes.length > 0) {
+        gsap.fromTo(
+          headerNodes,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            stagger: 0.08,
             scrollTrigger: {
-              trigger: headingRef.current,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
+              trigger: headerRef.current,
+              start: "top 82%",
+              once: true,
             },
-            opacity: 0,
-            y: 30,
-            stagger: 0.015,
-            duration: 0.8,
-            ease: "power3.out",
-          });
-        }
+          }
+        );
       }
 
-      if (svgLinesRef.current) {
-        gsap.to(svgLinesRef.current, {
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 0.5,
-          },
-          yPercent: -12,
-          ease: "none",
+      // 2. Capability Cards Batch Stagger + Counter Animation
+      const cards = cardsGridRef.current?.querySelectorAll(".capability-card-item");
+      if (cards && cards.length > 0) {
+        cards.forEach((card, idx) => {
+          const statEl = card.querySelector(".exec-stat-val") as HTMLElement;
+          const targetValue = statEl?.getAttribute("data-val") || "";
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+              once: true,
+            },
+          });
+
+          tl.fromTo(
+            card,
+            { opacity: 0, y: 24 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.65,
+              delay: idx * 0.08,
+              ease: "power2.out",
+            }
+          );
+
+          if (statEl) {
+            if (targetValue.includes("%")) {
+              const counter = { val: 0 };
+              tl.to(
+                counter,
+                {
+                  val: 100,
+                  duration: 1.4,
+                  ease: "power2.out",
+                  onUpdate: () => {
+                    statEl.textContent = `${Math.round(counter.val)}%`;
+                  },
+                },
+                "-=0.3"
+              );
+            } else if (targetValue.includes("+")) {
+              const numericVal = parseInt(targetValue, 10) || 20;
+              const counter = { val: 0 };
+              tl.to(
+                counter,
+                {
+                  val: numericVal,
+                  duration: 1.4,
+                  ease: "power2.out",
+                  onUpdate: () => {
+                    statEl.textContent = `${Math.round(counter.val)}+`;
+                  },
+                },
+                "-=0.3"
+              );
+            }
+          }
         });
       }
 
-      const cards = gsap.utils.toArray<HTMLElement>(".promise-card");
-      cards.forEach((card) => {
-        const statNumber = card.querySelector(".stat-number");
-        if (statNumber) {
-          const targetValue = statNumber.textContent || "";
-          if (targetValue.includes("%")) {
-            const obj = { value: 0 };
-            gsap.to(obj, {
-              value: 100,
-              scrollTrigger: { trigger: card, start: "top 85%" },
-              duration: 1.8,
-              ease: "expo.out",
-              onUpdate: () => {
-                statNumber.textContent = `${Math.round(obj.value)}%`;
-              },
-            });
-          } else if (targetValue.includes("+")) {
-            const numericValue = parseInt(targetValue, 10) || 0;
-            const obj = { value: 0 };
-            gsap.to(obj, {
-              value: numericValue,
-              scrollTrigger: { trigger: card, start: "top 85%" },
-              duration: 1.8,
-              ease: "expo.out",
-              onUpdate: () => {
-                statNumber.textContent = `${Math.round(obj.value)}+`;
-              },
-            });
+      // 3. Bottom Guarantee Banner Reveal
+      if (bannerRef.current) {
+        gsap.fromTo(
+          bannerRef.current,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: bannerRef.current,
+              start: "top 88%",
+              once: true,
+            },
           }
-        }
-      });
+        );
+      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -306,113 +172,151 @@ export function ExecutionPromiseSection({
   return (
     <section
       ref={sectionRef}
-      className="relative z-20 overflow-hidden bg-[var(--background)] py-14 text-[var(--text)] font-body lg:py-20"
+      id="operational-excellence"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-20 lg:py-28 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white border-t border-[var(--border,rgba(241,239,233,0.12))]"
     >
-      {/* Background Glow & SVGs */}
-      <div className="pointer-events-none absolute left-1/2 top-10 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-[var(--accent)]/5 blur-[120px]" />
+      {/* Ambient Accent Radial Glow */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 h-[450px] w-[750px] rounded-full bg-[radial-gradient(circle,rgba(255,90,42,0.07)_0%,transparent_75%)] blur-[140px]"
+        aria-hidden="true"
+      />
 
-      <svg
-        ref={svgLinesRef}
-        className="pointer-events-none absolute inset-0 h-[115%] w-full opacity-20 transform-gpu will-change-transform"
-        viewBox="0 0 1440 1000"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-100 200 H1540 M-100 400 H1540 M-100 600 H1540 M-100 800 H1540"
-          stroke="var(--border)"
-          strokeWidth="0.5"
-          strokeDasharray="6 10"
-        />
-        <path
-          d="M200 -100 V1100 M400 -100 V1100 M600 -100 V1100 M800 -100 V1100 M1000 -100 V1100 M1200 -100 V1100"
-          stroke="var(--border)"
-          strokeWidth="0.5"
-          strokeDasharray="6 10"
-        />
-        <circle cx="400" cy="400" r="3" fill="var(--accent)" className="animate-pulse" />
-        <circle cx="800" cy="600" r="3" fill="var(--accent)" className="animate-pulse" />
-        <circle cx="1000" cy="200" r="3" fill="var(--accent)" className="animate-pulse" />
-      </svg>
-
-      <div className="noise pointer-events-none absolute inset-0 opacity-15" />
-
-      {/* Main Content Area */}
-      <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-x-12 gap-y-4 md:grid-cols-[1fr_auto]">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1 backdrop-blur-md">
-              <Sparkles size={13} className="text-[var(--accent)] animate-pulse" />
-              <span className="text-[11px] uppercase tracking-[0.18em] font-semibold text-[var(--accent)]">
-                Operational Excellence
-              </span>
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        {/* Header Grid: Strictly Balanced */}
+        <div
+          ref={headerRef}
+          className="grid gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:grid-cols-12 lg:items-end"
+        >
+          {/* Left Title Column */}
+          <div className="lg:col-span-7">
+            <div className="exec-head-node inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)] shadow-sm">
+              <Sparkles size={11} className="text-[var(--accent,#ff5a2a)] animate-pulse" />
+              <span>Operational Excellence</span>
             </div>
 
-            {/* Heading with Descender Fix */}
-            <h2
-              ref={headingRef}
-              className="font-display mt-3 text-3xl font-semibold leading-snug tracking-tight text-[var(--text)] sm:text-4xl lg:text-5xl pb-1"
-            >
-              Engineered to perform. <br />
-              <span className="text-[var(--secondary)] font-light">
+            <h2 className="exec-head-node mt-4 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+              <span className="relative inline-block pb-1">
+                Engineered to perform.
+                {/* Glowing Accent Underline */}
+                <span
+                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent shadow-[0_0_10px_rgba(255,90,42,0.5)]"
+                  aria-hidden="true"
+                />
+              </span>
+              <br />
+              <span className="text-[var(--secondary,#b8b6af)]">
                 Built to captivate.
               </span>
             </h2>
           </div>
 
-          <div className="flex flex-col justify-end md:max-w-xs">
-            <p className="text-xs leading-relaxed text-[var(--secondary)] font-light opacity-90 sm:text-sm">
-              We bridge conceptual architectural design with rigorous engineering
-              guarantees—giving your brand an unmissable physical presence on the show floor.
+          {/* Right Lead Description */}
+          <div className="lg:col-span-5 lg:pb-1">
+            <p className="exec-head-node max-w-md text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-base">
+              We bridge conceptual architectural design with rigorous engineering guarantees—giving your brand an unmissable physical presence on the show floor.
             </p>
-            <div className="mt-3 h-[1px] w-16 bg-[var(--accent)] rounded-full shadow-[0_0_8px_rgba(255,90,42,0.4)]" />
           </div>
         </div>
 
-        {/* Bento Cards Grid */}
+        {/* 3-Column Luxury Capability Cards */}
         <div
-          ref={containerRef}
-          className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6"
+          ref={cardsGridRef}
+          className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8"
         >
           {list.map((item, idx) => (
-            <InteractiveCapabilityCard key={item.id} item={item} idx={idx} />
+            <article
+              key={item.id}
+              className="capability-card-item group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] p-7 transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/50 hover:bg-[var(--elevated,#191c1f)] hover:-translate-y-1 shadow-lg sm:p-8"
+            >
+              {/* Subtle Ambient Hover Glow */}
+              <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[var(--accent,#ff5a2a)]/15 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+              {/* Watermark Index Number */}
+              <span className="pointer-events-none absolute right-4 top-2 select-none font-mono text-6xl font-extrabold text-white/[0.02] transition-colors duration-300 group-hover:text-[var(--accent,#ff5a2a)]/[0.07] sm:text-7xl">
+                0{idx + 1}
+              </span>
+
+              {/* Top Block: Badge & Title */}
+              <div className="relative z-10">
+                <div className="flex items-center justify-between border-b border-[var(--border,rgba(241,239,233,0.08))] pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--background,#0b0c0d)] px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">
+                    <Zap size={11} />
+                    {item.badge}
+                  </span>
+
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)] animate-pulse" />
+                </div>
+
+                <h3 className="mt-5 text-xl font-bold tracking-tight text-[var(--text,#f1efe9)] transition-colors duration-200 group-hover:text-[var(--accent,#ff5a2a)] sm:text-2xl">
+                  {item.title}
+                </h3>
+
+                <p className="mt-3 text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                  {item.description}
+                </p>
+              </div>
+
+              {/* Bottom Stat Block */}
+              <div className="relative z-10 mt-7 flex items-end justify-between border-t border-[var(--border,rgba(241,239,233,0.08))] pt-5">
+                <div>
+                  <span
+                    className="exec-stat-val block font-mono text-3xl font-extrabold tracking-tight text-[var(--text,#f1efe9)] sm:text-4xl"
+                    data-val={item.statNumber}
+                  >
+                    {item.statNumber}
+                  </span>
+                  <p className="mt-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-[var(--muted,#7d807e)]">
+                    {item.statLabel}
+                  </p>
+                </div>
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--background,#0b0c0d)] text-[var(--secondary,#b8b6af)] transition-all duration-300 group-hover:border-[var(--accent,#ff5a2a)] group-hover:bg-[var(--accent,#ff5a2a)] group-hover:text-black group-hover:scale-105">
+                  <ArrowRight size={16} />
+                </div>
+              </div>
+            </article>
           ))}
         </div>
 
-        {/* Compact Guarantee Banner */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]/30 p-1.5 backdrop-blur-xl">
-          <div className="flex flex-col items-center justify-between gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:flex-row sm:p-6 sm:gap-8">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)] shadow-inner">
-                <Shield size={22} />
+        {/* Guarantee Banner */}
+        <div
+          ref={bannerRef}
+          className="mt-12 overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] p-6 shadow-xl lg:p-8"
+        >
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-4 sm:items-center">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 text-[var(--accent,#ff5a2a)] shadow-md">
+                <ShieldCheck size={24} />
               </div>
+
               <div>
-                <h4 className="font-display text-base font-semibold text-[var(--text)] sm:text-lg">
-                  100% Turnkey Delivery Guarantee
-                </h4>
-                <p className="mt-0.5 text-xs text-[var(--secondary)] font-light leading-relaxed max-w-xl">
-                  Full logistics, build-up, electrical compliance, and post-event
-                  dismantle included. We assume total operational responsibility.
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-bold text-[var(--text,#f1efe9)] sm:text-lg">
+                    100% Turnkey Delivery Guarantee
+                  </h4>
+                  <span className="hidden sm:inline-flex items-center gap-1 font-mono text-[10px] text-[var(--success,#66d19e)] font-semibold">
+                    <CheckCircle2 size={11} /> Verified
+                  </span>
+                </div>
+                <p className="mt-1 max-w-2xl text-xs font-normal leading-relaxed text-[var(--secondary,#b8b6af)] sm:text-sm">
+                  Full logistics, assembly engineering, venue compliance sign-offs, and post-event dismantling included. We assume total operational accountability.
                 </p>
               </div>
             </div>
 
-            <MagneticWrapper>
-              <a
-                href="/contact"
-                className="group relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-full bg-[var(--accent)] px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_20px_rgba(255,90,42,0.25)]"
-              >
-                <span className="relative z-10">Start Project Brief</span>
-                <ArrowRight
-                  size={14}
-                  className="relative z-10 transition-transform duration-200 group-hover:translate-x-1"
-                />
-                <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </a>
-            </MagneticWrapper>
+            <Link
+              href="/contact"
+              className="group inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2.5 rounded-full bg-[var(--text,#f1efe9)] px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--background,#0b0c0d)] transition-all duration-300 hover:scale-[1.03] hover:bg-white hover:shadow-[0_0_25px_rgba(241,239,233,0.3)] active:scale-95"
+            >
+              <span>Start Project Brief</span>
+              <ArrowRight
+                size={14}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
           </div>
         </div>
       </div>
     </section>
   );
-}
+} 

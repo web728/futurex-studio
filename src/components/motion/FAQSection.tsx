@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useId } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import React, { useState } from "react";
+import Link from "next/link";
 import { Plus, Search, Sparkles, MessageSquare, ArrowUpRight, FileQuestion } from "lucide-react";
 
 interface FAQItem {
@@ -15,7 +15,7 @@ const faqData: FAQItem[] = [
   {
     id: "1",
     category: "design",
-    question: "What is your typical lead time from initial concept to 3D visualization?",
+    question: "What is your typical lead time from initial brief to 3D visualization?",
     answer:
       "Our core design phase takes 3 to 7 business days depending on scale. We deliver photorealistic 3D renders, spatial floor plans, and material specification sheets for your brand's complete sign-off.",
   },
@@ -38,21 +38,21 @@ const faqData: FAQItem[] = [
     category: "design",
     question: "Can we request changes to the 3D pavilion designs?",
     answer:
-      "Absolutely. Every project includes up to two complete revision rounds during the conceptual phase. We fine-tune lighting, materials, brand touchpoints, and flow dynamics until it matches your brand identity.",
+      "Every project includes up to two complete revision rounds during the conceptual phase. We fine-tune lighting, materials, brand touchpoints, and traffic flow until it matches your brand identity.",
   },
   {
     id: "5",
     category: "execution",
     question: "How do you guarantee zero-delay deployment on tight exhibition deadlines?",
     answer:
-      "Our 'dry-run' protocol involves full test builds in our fabrication facility prior to shipping. This eliminates fitment issues and guarantees on-site installation within 12 to 24 hours.",
+      "Our dry-run protocol involves full test builds in our workshop prior to shipping. This eliminates fitment issues and guarantees on-site installation within 12 to 24 hours.",
   },
   {
     id: "6",
     category: "pricing",
-    question: "What are your payment terms for custom exhibition stands?",
+    question: "What are your standard payment terms for custom exhibition stands?",
     answer:
-      "Standard engagement terms are 50% deposit upon contract signing and design approval, 40% upon pre-fabrication inspection completion, and 10% post-event handover at the venue.",
+      "Standard engagement terms are 50% deposit upon contract signing and design approval, 40% upon pre-fabrication workshop inspection, and 10% post-event handover at the venue.",
   },
 ];
 
@@ -67,7 +67,6 @@ export function FAQSection() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [openId, setOpenId] = useState<string | null>("1");
   const [searchQuery, setSearchQuery] = useState("");
-  const layoutGroupId = useId();
 
   const filteredFaqs = faqData.filter((item) => {
     const matchesCategory = activeCategory === "all" || item.category === activeCategory;
@@ -81,98 +80,67 @@ export function FAQSection() {
     setOpenId(openId === id ? null : id);
   };
 
-  const headingWords = "Before you brief us.".split(" ");
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const wordVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 16 
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        duration: 0.5, 
-        ease: [0.16, 1, 0.3, 1] 
-      } 
-    },
-  } as const;
-
   return (
-    <section className="relative z-10 overflow-hidden border-t border-[var(--border)] bg-[var(--background)] py-14 text-[var(--text)] sm:py-20 lg:py-24">
-      {/* Background Glow */}
-      <div className="pointer-events-none absolute left-1/4 top-1/3 -z-10 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-[var(--accent)]/[0.03] blur-[140px]" />
+    <section
+      id="faq"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-20 lg:py-28 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white border-t border-[var(--border,rgba(241,239,233,0.12))]"
+    >
+      {/* Ambient Accent Radial Glow */}
+      <div
+        className="pointer-events-none absolute left-1/4 top-1/3 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,90,42,0.06)_0%,transparent_75%)] blur-[140px]"
+        aria-hidden="true"
+      />
 
-      <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start lg:gap-16">
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-start lg:gap-16">
           
-          {/* LEFT COLUMN: Header & Category Filters */}
-          <div className="space-y-6 lg:sticky lg:top-24">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={containerVariants}
-              className="space-y-4"
-            >
-              <motion.div 
-                variants={wordVariants}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-[var(--accent)]"
-              >
-                <Sparkles size={11} className="animate-pulse" />
+          {/* LEFT COLUMN: Header, Search & Category Filters (5 Columns) */}
+          <div className="space-y-6 lg:sticky lg:top-28 lg:col-span-5">
+            <div>
+              {/* Eyebrow Pill */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)] shadow-sm">
+                <Sparkles size={11} className="text-[var(--accent,#ff5a2a)] animate-pulse" />
                 <span>Frequently Asked</span>
-              </motion.div>
+              </div>
 
-              {/* Heading with Descender Fix */}
-              <h2 className="font-display text-3xl font-normal leading-snug tracking-tight sm:text-4xl lg:text-5xl pb-1">
-                {headingWords.map((word, i) => (
-                  <motion.span
-                    key={i}
-                    variants={wordVariants}
-                    className={`inline-block mr-2 ${
-                      word.toLowerCase().includes("brief")
-                        ? "font-light italic text-[var(--secondary)]"
-                        : "text-[var(--text)]"
-                    }`}
-                  >
-                    {word}
-                  </motion.span>
-                ))}
+              {/* 2-Line Punchy Headline with Glowing Underline */}
+              <h2 className="mt-4 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+                <span className="relative inline-block pb-1">
+                  Before you brief us.
+                  <span
+                    className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent shadow-[0_0_10px_rgba(255,90,42,0.5)]"
+                    aria-hidden="true"
+                  />
+                </span>
+                <br />
+                <span className="text-[var(--secondary,#b8b6af)] font-normal text-[clamp(1.8rem,3.2vw,2.8rem)]">
+                  Everything you need to know.
+                </span>
               </h2>
 
-              <motion.p
-                variants={wordVariants}
-                className="max-w-md text-xs font-light leading-relaxed text-[var(--secondary)] sm:text-sm"
-              >
-                Clear, itemized answers regarding scoping, visual approvals, turnkey fabrication, and zero-delay execution timelines.
-              </motion.p>
-            </motion.div>
+              <p className="mt-4 text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                Clear answers regarding project scoping, visual approval rounds, turnkey fabrication, and zero-delay delivery on the show floor.
+              </p>
+            </div>
 
-            {/* Search Input */}
-            <div className="relative max-w-md">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--secondary)]" />
+            {/* Search Input Bar */}
+            <div className="relative">
+              <Search
+                size={14}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted,#7d807e)]"
+              />
               <input
                 type="text"
-                placeholder="Search topics or keywords..."
+                placeholder="Search queries or topics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border-b border-[var(--border)] bg-transparent py-2.5 pl-9 pr-12 text-xs font-light text-[var(--text)] placeholder-[var(--secondary)] outline-none transition-colors duration-300 focus:border-[var(--accent)]"
+                className="w-full rounded-xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] py-3 pl-9 pr-14 text-xs font-normal text-[var(--text,#f1efe9)] placeholder-[var(--muted,#7d807e)] outline-none transition-all duration-200 focus:border-[var(--accent,#ff5a2a)] focus:ring-1 focus:ring-[var(--accent,#ff5a2a)] shadow-inner"
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono uppercase tracking-wider text-[var(--secondary)] transition-colors hover:text-[var(--accent)]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted,#7d807e)] hover:text-[var(--accent,#ff5a2a)]"
                 >
                   Clear
                 </button>
@@ -180,173 +148,128 @@ export function FAQSection() {
             </div>
 
             {/* Category Filter Pills */}
-            <LayoutGroup id={layoutGroupId}>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {categories.map((cat) => {
-                  const isActive = activeCategory === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.id)}
-                      className={`relative px-3 py-1 font-mono text-[11px] transition-colors duration-300 ${
-                        isActive
-                          ? "font-semibold text-black"
-                          : "text-[var(--secondary)] hover:text-[var(--text)]"
-                      }`}
-                    >
-                      {isActive && (
-                        <motion.span
-                          layoutId="faq-active-pill-editorial"
-                          className="absolute inset-0 rounded-full bg-[var(--accent)] shadow-[0_0_12px_rgba(255,90,42,0.3)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        />
-                      )}
-                      <span className="relative z-10">{cat.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </LayoutGroup>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {categories.map((cat) => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`rounded-full px-3.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-[var(--accent,#ff5a2a)] text-black shadow-[0_0_15px_rgba(255,90,42,0.35)]"
+                        : "border border-[var(--border,rgba(241,239,233,0.1))] bg-[var(--surface,#121416)] text-[var(--secondary,#b8b6af)] hover:border-[var(--accent,#ff5a2a)]/40 hover:text-[var(--text,#f1efe9)]"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Quick Help Link */}
-            <div className="pt-4 border-t border-[var(--border)]/40">
-              <div className="flex items-center gap-2 text-[var(--secondary)]">
-                <MessageSquare size={14} className="text-[var(--accent)]" />
-                <span className="font-mono text-xs uppercase tracking-wider text-[var(--text)]">Direct Technical Query?</span>
+            {/* Direct Engineering Query Box */}
+            <div className="rounded-2xl border border-[var(--border,rgba(241,239,233,0.1))] bg-[var(--surface,#121416)] p-5 shadow-lg">
+              <div className="flex items-center gap-2 text-[var(--text,#f1efe9)]">
+                <MessageSquare size={14} className="text-[var(--accent,#ff5a2a)]" />
+                <span className="font-mono text-xs font-bold uppercase tracking-wider">
+                  Specific Technical Question?
+                </span>
               </div>
-              <p className="mt-1.5 text-xs font-light leading-relaxed text-[var(--secondary)]">
-                Need venue floorplan approvals or electrical specs? Speak directly with our spatial design engineers.
+              <p className="mt-2 text-xs font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                Need customized floorplan approvals or electrical load calculations? Speak directly with our spatial design engineers.
               </p>
-              <a
+              <Link
                 href="/contact"
-                className="group mt-2.5 inline-flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-[var(--accent)] transition-all hover:gap-2"
+                className="group mt-3 inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[var(--accent,#ff5a2a)] transition-all hover:gap-2"
               >
                 <span>Talk to Spatial Team</span>
-                <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
+                <ArrowUpRight
+                  size={13}
+                  className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </Link>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Accordion List */}
-          <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {filteredFaqs.length === 0 ? (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.25 }}
-                  className="py-12 text-center"
-                >
-                  <FileQuestion size={22} className="mx-auto mb-2 text-[var(--secondary)]/60" />
-                  <p className="font-mono text-xs uppercase tracking-wider text-[var(--secondary)]">
-                    No matching answers found for &ldquo;{searchQuery}&rdquo;
-                  </p>
-                </motion.div>
-              ) : (
-                filteredFaqs.map((faq, idx) => {
-                  const isOpen = openId === faq.id;
-                  return (
-                    <motion.div
-                      key={faq.id}
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.25, delay: idx * 0.02 }}
-                      className={`group relative transition-colors duration-300 ${
-                        isOpen ? "bg-[var(--surface)]/20" : "hover:bg-[var(--surface)]/10"
+          {/* RIGHT COLUMN: Accordion Matrix (7 Columns) */}
+          <div className="divide-y divide-[var(--border,rgba(241,239,233,0.1))] rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] shadow-xl overflow-hidden lg:col-span-7">
+            {filteredFaqs.length === 0 ? (
+              <div className="py-16 text-center">
+                <FileQuestion size={24} className="mx-auto mb-2 text-[var(--muted,#7d807e)]" />
+                <p className="font-mono text-xs uppercase tracking-wider text-[var(--secondary,#b8b6af)]">
+                  No matching answers found for &ldquo;{searchQuery}&rdquo;
+                </p>
+              </div>
+            ) : (
+              filteredFaqs.map((faq) => {
+                const isOpen = openId === faq.id;
+
+                return (
+                  <article
+                    key={faq.id}
+                    className={`group relative transition-colors duration-200 ${
+                      isOpen ? "bg-[var(--elevated,#191c1f)]/80" : "hover:bg-[var(--elevated,#191c1f)]/40"
+                    }`}
+                  >
+                    {/* Active Left Vertical Accent Line */}
+                    <span
+                      className={`absolute left-0 top-0 bottom-0 w-[2.5px] bg-[var(--accent,#ff5a2a)] transition-all duration-300 ${
+                        isOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0"
+                      }`}
+                    />
+
+                    {/* Accordion Trigger Button */}
+                    <button
+                      type="button"
+                      onClick={() => toggleAccordion(faq.id)}
+                      aria-expanded={isOpen}
+                      className="flex w-full items-start justify-between gap-4 p-5 text-left sm:p-6 cursor-pointer"
+                    >
+                      <div className="flex items-baseline gap-3.5 sm:gap-5">
+                        <span className="font-mono text-xs font-bold text-[var(--accent,#ff5a2a)] shrink-0">
+                          0{faq.id}
+                        </span>
+
+                        <h3
+                          className={`text-base font-bold tracking-tight transition-colors duration-200 sm:text-lg ${
+                            isOpen ? "text-[var(--text,#f1efe9)]" : "text-[var(--text,#f1efe9)]/85 group-hover:text-[var(--text,#f1efe9)]"
+                          }`}
+                        >
+                          {faq.question}
+                        </h3>
+                      </div>
+
+                      {/* Rotating Plus / Cross Toggle */}
+                      <div
+                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                          isOpen
+                            ? "border-[var(--accent,#ff5a2a)] bg-[var(--accent,#ff5a2a)] text-black rotate-45 shadow-[0_0_12px_rgba(255,90,42,0.4)]"
+                            : "border-[var(--border,rgba(241,239,233,0.14))] text-[var(--secondary,#b8b6af)] group-hover:border-[var(--accent,#ff5a2a)]/50 group-hover:text-[var(--text,#f1efe9)]"
+                        }`}
+                      >
+                        <Plus size={14} />
+                      </div>
+                    </button>
+
+                    {/* Pure CSS Grid Smooth Height Toggle (Zero Framer Motion Lag) */}
+                    <div
+                      className={`grid transition-all duration-300 ease-out ${
+                        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                       }`}
                     >
-                      {/* Left Accent Indicator */}
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          scaleY: isOpen ? 1 : 0,
-                          opacity: isOpen ? 1 : 0,
-                        }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--accent)] origin-center"
-                      />
-
-                      {/* Question Trigger Button */}
-                      <button
-                        onClick={() => toggleAccordion(faq.id)}
-                        className="flex w-full items-start justify-between gap-4 py-5 px-3 text-left sm:px-5 lg:py-6"
-                      >
-                        <div className="flex items-baseline gap-3 sm:gap-5">
-                          <span className="font-mono text-xs font-semibold text-[var(--accent)] shrink-0">
-                            {faq.id.padStart(2, "0")}
-                          </span>
-                          {/* Question Title with Descender Fix */}
-                          <h3
-                            className={`font-display text-base font-medium leading-snug tracking-tight transition-colors duration-300 sm:text-lg pb-0.5 ${
-                              isOpen ? "text-[var(--text)]" : "text-[var(--text)]/80 group-hover:text-[var(--text)]"
-                            }`}
-                          >
-                            {faq.question}
-                          </h3>
+                      <div className="overflow-hidden">
+                        <div className="pb-6 pl-10 pr-5 sm:pl-14 sm:pr-8">
+                          <p className="text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                            {faq.answer}
+                          </p>
                         </div>
-
-                        {/* Plus/Cross Icon */}
-                        <div className="mt-0.5 shrink-0">
-                          <motion.div
-                            animate={{ rotate: isOpen ? 45 : 0 }}
-                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                            className={`flex h-7 w-7 items-center justify-center rounded-full border transition-colors duration-300 ${
-                              isOpen
-                                ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-                                : "border-[var(--border)] text-[var(--secondary)] group-hover:border-[var(--accent)]/40 group-hover:text-[var(--text)]"
-                            }`}
-                          >
-                            <Plus size={14} />
-                          </motion.div>
-                        </div>
-                      </button>
-
-                      {/* Answer Reveal */}
-                      <AnimatePresence initial={false}>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{
-                              height: "auto",
-                              opacity: 1,
-                              transition: {
-                                height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-                                opacity: { duration: 0.2, delay: 0.08 },
-                              },
-                            }}
-                            exit={{
-                              height: 0,
-                              opacity: 0,
-                              transition: {
-                                height: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
-                                opacity: { duration: 0.12 },
-                              },
-                            }}
-                            className="overflow-hidden"
-                          >
-                            <motion.div
-                              initial={{ y: 4 }}
-                              animate={{ y: 0 }}
-                              exit={{ y: -4 }}
-                              transition={{ duration: 0.2, ease: "easeOut" }}
-                              className="pb-5 pl-10 pr-4 sm:pl-14 sm:pr-6"
-                            >
-                              <p className="max-w-2xl text-xs font-light leading-relaxed text-[var(--secondary)] sm:text-sm">
-                                {faq.answer}
-                              </p>
-                            </motion.div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })
-              )}
-            </AnimatePresence>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            )}
           </div>
 
         </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SplitType from "split-type";
-import { PovLiquidImage } from "@/components/cinematic/PovLiquidImage";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -22,70 +22,54 @@ interface PovStatsSectionProps {
 }
 
 const DEFAULT_STATS: StatItem[] = [
-  { value: 850, suffix: "+", label: "Exhibition stands delivered globally" },
-  { value: 98, suffix: "%", label: "On-time execution & site handover" },
-  { value: 11, suffix: "+", label: "Years of spatial design experience" },
-  { value: 2000, suffix: "+", label: "Brand partners across industries" },
+  { value: 850, suffix: "+", label: "Stands delivered globally" },
+  { value: 98, suffix: "%", label: "On-time execution & handover" },
+  { value: 11, suffix: "+", label: "Years of spatial expertise" },
+  { value: 2000, suffix: "+", label: "Brand partners worldwide" },
 ];
-
 
 export function PovStatsSection({
   stats = DEFAULT_STATS,
-  imageSrc = "/media/brand/fstudio-6-1024x683.webp",
+  imageSrc = "/gallery/project-1.jpg",
 }: PovStatsSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const statsContainerRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
     const ctx = gsap.context(() => {
-      const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-
-      if (prefersReducedMotion) return;
-
-      // 1. Text Reveal
-      if (titleRef.current) {
-        const split = new SplitType(titleRef.current, { types: "words,chars" });
-        if (split.chars) {
-          gsap.fromTo(
-            split.chars,
-            { opacity: 0, y: 20, rotateX: -30 },
-            {
-              opacity: 1,
-              y: 0,
-              rotateX: 0,
-              duration: 1,
-              stagger: 0.012,
-              ease: "power4.out",
-              onComplete: () => {
-                gsap.set(split.chars, { clearProps: "willChange" });
-              },
-              scrollTrigger: {
-                trigger: titleRef.current,
-                start: "top 85%",
-                once: true,
-              },
-            }
-          );
-        }
+      // 1. Header Elements Lightweight Entrance
+      const headerNodes = headerRef.current?.querySelectorAll(".pov-anim-node");
+      if (headerNodes && headerNodes.length > 0) {
+        gsap.fromTo(
+          headerNodes,
+          { opacity: 0, y: 22 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: headerRef.current,
+              start: "top 82%",
+              once: true,
+            },
+          }
+        );
       }
 
-      // 2. Counter Numbers & Card Reveal
+      // 2. Stats Counter & Card Stagger
       if (statsContainerRef.current) {
-        const statCards = statsContainerRef.current.querySelectorAll(".stat-card");
+        const statCards = statsContainerRef.current.querySelectorAll(".stat-card-item");
 
         statCards.forEach((card, idx) => {
-          const numberEl = card.querySelector(".counter-value") as HTMLElement;
-          const targetValue = parseInt(numberEl?.getAttribute("data-value") || "0", 10);
+          const numberEl = card.querySelector(".counter-val") as HTMLElement;
+          const targetValue = parseInt(numberEl?.getAttribute("data-val") || "0", 10);
 
           const tl = gsap.timeline({
             scrollTrigger: {
-              trigger: card,
+              trigger: statsContainerRef.current,
               start: "top 85%",
               once: true,
             },
@@ -93,41 +77,37 @@ export function PovStatsSection({
 
           tl.fromTo(
             card,
-            { opacity: 0, y: 30, scale: 0.97 },
+            { opacity: 0, y: 24 },
             {
               opacity: 1,
               y: 0,
-              scale: 1,
-              duration: 0.7,
+              duration: 0.65,
               delay: idx * 0.08,
-              ease: "power3.out",
+              ease: "power2.out",
             }
           );
 
           if (numberEl) {
             const counterObj = { val: 0 };
-            gsap.set(numberEl, { opacity: 1 });
-
             tl.to(
               counterObj,
               {
                 val: targetValue,
-                duration: 1.8,
+                duration: 1.4,
                 ease: "power2.out",
                 onUpdate: () => {
                   numberEl.textContent = Math.floor(counterObj.val).toString();
                 },
                 onComplete: () => {
                   numberEl.textContent = targetValue.toString();
-                  gsap.set(numberEl, { clearProps: "all" });
                 },
               },
-              "-=0.5"
+              "-=0.4"
             );
           }
         });
       }
-    }, section);
+    }, sectionRef);
 
     return () => ctx.revert();
   }, []);
@@ -135,89 +115,125 @@ export function PovStatsSection({
   return (
     <section
       ref={sectionRef}
-      className="pov-section relative overflow-hidden bg-[#0a0b0d] py-12 lg:py-20 text-white border-t border-white/10"
+      id="point-of-view"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-16 lg:py-24 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white border-t border-[var(--border,rgba(241,239,233,0.12))]"
     >
-      <div className="pointer-events-none absolute -left-32 top-1/4 h-[350px] w-[350px] rounded-full bg-[var(--accent,#ff5a2a)]/10 blur-[140px]" />
-      <div className="pointer-events-none absolute -right-32 bottom-10 h-[300px] w-[300px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[120px]" />
+      {/* Ambient Accent Radial Glow */}
+      <div
+        className="pointer-events-none absolute -left-28 top-1/3 h-[450px] w-[450px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[140px]"
+        aria-hidden="true"
+      />
 
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 max-w-6xl">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
-            <span>Our point of view</span>
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        {/* Header Grid: Strictly Balanced */}
+        <div
+          ref={headerRef}
+          className="grid gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:grid-cols-12 lg:items-end"
+        >
+          {/* Left Title Column */}
+          <div className="lg:col-span-7">
+            <div className="pov-anim-node inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
+              <Sparkles size={11} className="text-[var(--accent,#ff5a2a)]" />
+              <span>Our Point of View</span>
+            </div>
+
+            <h2 className="pov-anim-node mt-3 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+              <span className="relative inline-block pb-1">
+                A temporary space
+                {/* Glowing Accent Underline */}
+                <span
+                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent"
+                  aria-hidden="true"
+                />
+              </span>
+              <br />
+              <span className="text-[var(--secondary,#b8b6af)]">
+                with a permanent job.
+              </span>
+            </h2>
           </div>
 
-          <h2
-            ref={titleRef}
-            className="mt-3 text-[clamp(1.8rem,3.5vw,3.2rem)] font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-sm"
-          >
-            An exhibition stand is a temporary space with a permanent job.
-          </h2>
-
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base font-normal">
-            It must communicate quickly, support real conversations and represent the brand under pressure. Futurex Studio’s role is to translate that requirement into a spatial concept that can be reviewed, refined and built.
-          </p>
+          {/* Right Lead Description */}
+          <div className="lg:col-span-5 lg:pb-1">
+            <p className="pov-anim-node max-w-md text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-base">
+              An exhibition booth must communicate instantly, support meaningful B2B engagement, and represent your brand with unflinching quality under high-traffic show floor pressure.
+            </p>
+          </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats 4-Column Grid: Clean Luxury Metric Boxes */}
         <div
           ref={statsContainerRef}
-          className="mt-10 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6"
         >
           {stats.map((s, i) => (
             <div
               key={s.label}
-              className="stat-card group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] p-4 lg:p-5 backdrop-blur-xl transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/40 hover:bg-white/[0.04] hover:shadow-[0_8px_20px_rgba(255,90,42,0.08)]"
+              className="stat-card-item group relative overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] p-6 transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/50 hover:bg-[var(--elevated,#191c1f)] hover:-translate-y-1 shadow-md"
             >
-              <span className="absolute right-3 top-2.5 select-none font-mono text-[11px] font-bold text-white/10 group-hover:text-[var(--accent,#ff5a2a)]/40 transition-colors">
+              {/* Corner Index */}
+              <span className="absolute right-4 top-4 font-mono text-xs font-bold text-[var(--muted,#7d807e)]/40 transition-colors group-hover:text-[var(--accent,#ff5a2a)]">
                 0{i + 1}
               </span>
 
-              <div className="flex items-baseline font-extrabold text-white text-[clamp(2rem,3vw,2.8rem)] tracking-tight">
-                <span className="counter-value inline-block text-white" data-value={s.value}>
+              {/* Number Value */}
+              <div className="flex items-baseline font-extrabold text-[clamp(2rem,3.2vw,3rem)] tracking-tight text-[var(--text,#f1efe9)]">
+                <span className="counter-val inline-block" data-val={s.value}>
                   0
                 </span>
-                <span className="text-[var(--accent,#ff5a2a)] ml-0.5">{s.suffix}</span>
+                <span className="ml-0.5 text-[var(--accent,#ff5a2a)]">{s.suffix}</span>
               </div>
-              <p className="mt-1 text-xs font-medium leading-normal text-white/60 group-hover:text-white/90 transition-colors duration-200">
+
+              {/* Metric Label */}
+              <p className="mt-2 text-xs font-medium leading-relaxed text-[var(--secondary,#b8b6af)] transition-colors duration-200 group-hover:text-[var(--text,#f1efe9)]">
                 {s.label}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Image & Detail Grid Split */}
-        <div className="mt-10 grid gap-6 lg:grid-cols-12 items-stretch">
+        {/* 2-Column Split: Image Showcase (Left) + Architectural Precision Box (Right) */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-12 lg:items-stretch">
           
-          {/* FIX HERE: Added relative, h-[350px] sm:h-[400px] lg:h-auto w-full to guarantee proper rendering */}
-          <div className="relative lg:col-span-7 w-full min-h-[320px] h-[350px] lg:h-auto overflow-hidden rounded-xl border border-white/15 transition-transform duration-500 hover:border-[var(--accent,#ff5a2a)]/30">
-            <PovLiquidImage src={imageSrc} alt="Studio Showcase" />
+          {/* Left: Showcase Image Frame */}
+          <div className="group relative min-h-[340px] w-full overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] shadow-xl transition-all duration-500 hover:border-[var(--accent,#ff5a2a)]/50 lg:col-span-7">
+            <Image
+              src={imageSrc}
+              alt="Studio Showcase"
+              fill
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--background,#0b0c0d)]/80 via-transparent to-transparent" />
+            <p className="absolute bottom-5 left-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--secondary,#b8b6af)]">
+              Turnkey Production & Precision Build
+            </p>
           </div>
 
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-white/10 bg-white/[0.02] p-6 lg:p-8 backdrop-blur-xl">
+          {/* Right: Detailed Execution Box */}
+          <div className="flex flex-col justify-between rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] p-8 shadow-xl lg:col-span-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">
+              <div className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)]" />
-                <span>Concept to execution</span>
+                <span>Concept to Execution</span>
               </div>
 
-              <h3 className="mt-2 text-2xl lg:text-3xl font-bold tracking-tight text-white">
-                One idea, carried through.
+              <h3 className="mt-3 text-2xl font-bold tracking-tight text-[var(--text,#f1efe9)] sm:text-3xl">
+                One vision, carried through.
               </h3>
 
-              <p className="mt-3 text-sm leading-relaxed text-white/70 font-normal">
-                The process connects discovery, concept development, three-dimensional review, technical planning, fabrication and installation. Scope is shaped around each event and confirmed in the proposal.
+              <p className="mt-4 text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                Our methodology connects spatial briefing, concept iteration, 3D visualization review, structural CAD engineering, factory fabrication, and on-site assembly into a single seamless line of accountability.
               </p>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-white/40">
-              <span>PRECISION DESIGN</span>
-              <span className="text-[var(--accent,#ff5a2a)] font-semibold">100% EXECUTED</span>
+            <div className="mt-8 flex items-center justify-between border-t border-[var(--border,rgba(241,239,233,0.1))] pt-5 font-mono text-xs text-[var(--secondary,#b8b6af)]">
+              <span>PRECISION DISCIPLINE</span>
+              <span className="font-bold text-[var(--accent,#ff5a2a)]">100% EXECUTED</span>
             </div>
           </div>
 
         </div>
-
       </div>
     </section>
   );

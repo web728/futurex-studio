@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useRef } from "react";
-import {
-  motion,
-  useMotionTemplate,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { LucideIcon } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { LucideIcon, Sparkles } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export interface PrincipleItem {
   icon: LucideIcon;
@@ -21,170 +20,161 @@ interface HowWeWorkSectionProps {
 }
 
 export function HowWeWorkSection({ principles }: HowWeWorkSectionProps) {
-  return (
-    <section className="relative overflow-hidden border-y border-white/10 bg-[#0a0b0d] py-12 lg:py-20 text-white">
-      {/* Background Ambient Glow Orbs */}
-      <div className="pointer-events-none absolute -left-28 top-1/4 h-[300px] w-[300px] rounded-full bg-[var(--accent,#ff5a2a)]/10 blur-[130px]" />
-      <div className="pointer-events-none absolute -right-28 bottom-1/4 h-[300px] w-[300px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[130px]" />
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 max-w-6xl">
-        {/* Header Section - Compact */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-3xl"
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Header Reveal
+      const headerNodes = headerRef.current?.querySelectorAll(".hww-anim-node");
+      if (headerNodes && headerNodes.length > 0) {
+        gsap.fromTo(
+          headerNodes,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: headerRef.current,
+              start: "top 82%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Cards Batch Reveal
+      const cards = cardsContainerRef.current?.querySelectorAll(".principle-card");
+      if (cards && cards.length > 0) {
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.65,
+            ease: "power2.out",
+            stagger: 0.1,
+            scrollTrigger: {
+              trigger: cardsContainerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      id="how-we-work"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-16 lg:py-24 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white border-t border-[var(--border,rgba(241,239,233,0.12))]"
+    >
+      {/* Ambient Accent Glows */}
+      <div
+        className="pointer-events-none absolute -left-28 top-1/4 h-[400px] w-[400px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[140px]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -right-28 bottom-1/4 h-[350px] w-[350px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[140px]"
+        aria-hidden="true"
+      />
+
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        {/* Header Grid: Strictly Balanced */}
+        <div
+          ref={headerRef}
+          className="grid gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:grid-cols-12 lg:items-end"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
-            <span>How we work</span>
+          {/* Left Title Column */}
+          <div className="lg:col-span-7">
+            <div className="hww-anim-node inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
+              <Sparkles size={11} className="text-[var(--accent,#ff5a2a)]" />
+              <span>Studio Philosophy</span>
+            </div>
+
+            <h2 className="hww-anim-node mt-3 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+              <span className="relative inline-block pb-1">
+                Collaborative in design.
+                {/* Glowing Accent Underline */}
+                <span
+                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent"
+                  aria-hidden="true"
+                />
+              </span>
+              <br />
+              <span className="text-[var(--secondary,#b8b6af)]">
+                Decisive in execution.
+              </span>
+            </h2>
           </div>
 
-          <h2 className="display mt-3 text-[clamp(1.8rem,3.5vw,3.2rem)] font-extrabold leading-[1.1] tracking-tight text-white">
-            Collaborative where it matters.{" "}
-            <span className="text-[var(--accent,#ff5a2a)]">
-              Decisive when it counts.
-            </span>
-          </h2>
-        </motion.div>
+          {/* Right Lead Description */}
+          <div className="lg:col-span-5 lg:pb-1">
+            <p className="hww-anim-node max-w-md text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-base">
+              Every stage of our process is engineered to keep your brand intent intact from the first sketch to the finished exhibition floor.
+            </p>
+          </div>
+        </div>
 
-        {/* Interactive 3D Glass Cards Grid - Tight & Dense */}
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {principles.map((principle, index) => (
-            <Glass3DCard
-              key={principle.title}
-              item={principle}
-              index={index}
-            />
-          ))}
+        {/* 3-Column Luxury Principle Cards */}
+        <div
+          ref={cardsContainerRef}
+          className="mt-10 grid gap-6 md:grid-cols-3"
+        >
+          {principles.map((principle, index) => {
+            const Icon = principle.icon;
+
+            return (
+              <article
+                key={principle.title}
+                className="principle-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] p-7 transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/50 hover:bg-[var(--elevated,#191c1f)] hover:-translate-y-1 shadow-lg"
+              >
+                {/* Subtle Ambient Hover Glow */}
+                <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/15 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                {/* Watermark Step Number */}
+                <span className="pointer-events-none absolute -right-2 -top-4 select-none font-mono text-7xl font-extrabold text-white/[0.02] transition-colors duration-300 group-hover:text-[var(--accent,#ff5a2a)]/10">
+                  0{index + 1}
+                </span>
+
+                <div>
+                  {/* Icon Badge */}
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--elevated,#191c1f)] text-[var(--accent,#ff5a2a)] transition-all duration-300 group-hover:border-[var(--accent,#ff5a2a)]/50 group-hover:bg-[var(--accent,#ff5a2a)] group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,90,42,0.4)]">
+                    <Icon size={20} className="transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+
+                  {/* Card Title */}
+                  <h3 className="mt-6 text-xl font-bold tracking-tight text-[var(--text,#f1efe9)] transition-colors duration-200 group-hover:text-[var(--accent,#ff5a2a)]">
+                    {principle.title}
+                  </h3>
+
+                  {/* Card Body */}
+                  <p className="mt-3 text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)]">
+                    {principle.copy}
+                  </p>
+                </div>
+
+                {/* Footer Principle Tag */}
+                <div className="mt-7 flex items-center justify-between border-t border-[var(--border,rgba(241,239,233,0.08))] pt-4">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--muted,#7d807e)] transition-colors duration-200 group-hover:text-[var(--accent,#ff5a2a)]">
+                    Principle 0{index + 1}
+                  </span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
-  );
-}
-
-function Glass3DCard({
-  item,
-  index,
-}: {
-  item: PrincipleItem;
-  index: number;
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const Icon = item.icon;
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // Smooth & Refined 3D Spring Physics
-  const springConfig = { damping: 25, stiffness: 200, mass: 0.5 };
-  const rotateX = useSpring(
-    useTransform(mouseY, [-0.5, 0.5], [8, -8]),
-    springConfig
-  );
-  const rotateY = useSpring(
-    useTransform(mouseX, [-0.5, 0.5], [-8, 8]),
-    springConfig
-  );
-
-  const spotlightX = useSpring(useTransform(mouseX, [-0.5, 0.5], [0, 100]), springConfig);
-  const spotlightY = useSpring(useTransform(mouseY, [-0.5, 0.5], [0, 100]), springConfig);
-
-  // Dynamic Radial Spotlight
-  const backgroundRadial = useMotionTemplate`radial-gradient(350px circle at ${spotlightX}% ${spotlightY}%, rgba(255, 90, 42, 0.15), transparent 80%)`;
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-
-    const xPct = (e.clientX - rect.left) / width - 0.5;
-    const yPct = (e.clientY - rect.top) / height - 0.5;
-
-    mouseX.set(xPct);
-    mouseY.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{
-        duration: 0.6,
-        delay: index * 0.1,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      className="perspective-1000"
-    >
-      <motion.article
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-        className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] p-5 lg:p-6 shadow-xl backdrop-blur-2xl transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/50 hover:shadow-[0_12px_30px_rgba(255,90,42,0.12)]"
-      >
-        {/* Dynamic Cursor Spotlight Effect */}
-        <motion.div
-          className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{ background: backgroundRadial }}
-        />
-
-        {/* Top-Left Ambient Accent Glow */}
-        <div className="pointer-events-none absolute -left-1/2 -top-1/2 h-full w-full bg-gradient-to-b from-[var(--accent,#ff5a2a)]/10 via-transparent to-transparent opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-
-        {/* Watermark Index Number */}
-        <span
-          style={{ transform: "translateZ(10px)" }}
-          className="absolute -right-1 -top-4 select-none font-mono text-7xl font-extrabold text-white/[0.03] transition-colors duration-300 group-hover:text-[var(--accent,#ff5a2a)]/12"
-        >
-          0{index + 1}
-        </span>
-
-        {/* Icon Container */}
-        <div
-          style={{ transform: "translateZ(25px)" }}
-          className="relative inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] p-3 text-[var(--accent,#ff5a2a)] shadow-md backdrop-blur-md transition-all duration-300 group-hover:border-[var(--accent,#ff5a2a)]/50 group-hover:bg-[var(--accent,#ff5a2a)] group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,90,42,0.5)]"
-        >
-          <Icon size={22} className="transition-transform duration-300 group-hover:scale-110" />
-        </div>
-
-        {/* Card Title */}
-        <h3
-          style={{ transform: "translateZ(20px)" }}
-          className="relative mt-5 text-lg font-bold tracking-tight text-white transition-colors duration-200 group-hover:text-white"
-        >
-          {item.title}
-        </h3>
-
-        {/* Card Description */}
-        <p
-          style={{ transform: "translateZ(10px)" }}
-          className="relative mt-2 text-xs leading-relaxed text-white/60 transition-colors duration-200 group-hover:text-white/80 sm:text-sm"
-        >
-          {item.copy}
-        </p>
-
-        {/* Footer Pill Tag */}
-        <div 
-          style={{ transform: "translateZ(15px)" }}
-          className="relative mt-5 flex items-center gap-1.5 font-mono text-[10px] font-semibold text-[var(--accent,#ff5a2a)] opacity-0 transition-all duration-300 group-hover:opacity-100"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)] animate-ping" />
-          <span>PRINCIPLE 0{index + 1}</span>
-        </div>
-      </motion.article>
-    </motion.div>
   );
 }

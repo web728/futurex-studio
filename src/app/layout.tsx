@@ -1,22 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import dynamic from "next/dynamic";
 import { Archivo, Manrope } from "next/font/google";
 import "./globals.css";
-import { MotionShell } from "@/components/motion-system";
 import { company, siteUrl } from "@/data/site";
 import { siteImages } from "@/data/site-images";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { ClientScripts } from "@/components/providers/ClientScripts";
 
-// Dynamic imports without { ssr: false } inside Server Component
-const SmoothScrollAndCursor = dynamic(
-  () => import("@/components/SmoothScrollAndCursor")
-);
-
-const Clarity = dynamic(() => import("@/components/Clarity"));
-
-// Font Optimization with display: 'swap' for zero CLS
 const display = Archivo({
   subsets: ["latin"],
   variable: "--font-display",
@@ -42,7 +33,7 @@ export const metadata: Metadata = {
     title: "Futurex Studio",
     description: company.positioning || "Exhibition Design & Fabrication",
     type: "website",
-    images: [siteImages.siteSocial.src],
+    images: [siteImages.siteSocial?.src || ""],
   },
   twitter: { card: "summary_large_image" },
 };
@@ -71,15 +62,17 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
-      <body suppressHydrationWarning>
-        <SmoothScrollAndCursor />
-        <Clarity />
+      <body
+        className="bg-[#08080a] text-white antialiased selection:bg-white/20 selection:text-white"
+        suppressHydrationWarning
+      >
+        <ClientScripts />
 
         <Header />
-        <MotionShell>
-          <main id="main">{children}</main>
-          <Footer />
-        </MotionShell>
+        <main id="main" className="relative w-full overflow-hidden">
+          {children}
+        </main>
+        <Footer />
 
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>

@@ -1,3 +1,5 @@
+import { projectMedia } from "./site-images";
+
 export type VerifiedValue<T> = {
   value: T;
   verified: boolean;
@@ -5,18 +7,31 @@ export type VerifiedValue<T> = {
   notes?: string;
 };
 
+// 👇 Added Testimonial type definition to fix the red line import error
+export type Testimonial = {
+  name: string;
+  company: string;
+  quote: string;
+  role?: string;
+  stars?: number;
+  avatar?: string;
+};
+
+export type Project = {
+  slug: string;
+  title: string;
+  category: string;
+  featuredImage?: string;
+  thumbnailImage: string;
+};
+
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://futurexstudio.com";
-
-// @/data/site.ts (Example structure update)
-
-// @/data/site.ts
 
 export const company = {
   name: "Futurex Studio",
   positioning: "Exhibition Design & Fabrication",
 
-  // Primary / fallback contact (used in schema, CTAs)
   phoneHref: "tel:+919810855697",
   whatsappHref: "https://wa.me/919810855697",
 
@@ -42,13 +57,12 @@ export const company = {
     },
   ],
 
-  
   offices: [
     {
       id: "delhi",
       label: "Delhi — Corporate Office",
       short: "New Delhi",
-      badge: "Headquarters", // 👈 Head branch indicator
+      badge: "Headquarters",
       address: "E-52, 1st Floor, Kalkaji, New Delhi 110017, India",
       mapEmbedUrl:
         "https://www.google.com/maps?q=" +
@@ -84,7 +98,7 @@ export const company = {
         "&output=embed",
     },
   ],
-  
+
   warehouses: [
     {
       label: "Delhi/NCR Warehouse",
@@ -96,8 +110,6 @@ export const company = {
     },
   ],
 };
-
-
 
 export const navigation = [
   { label: "Home", href: "/" },
@@ -172,14 +184,6 @@ export const services = [
   },
 ];
 
-export type Project = {
-  slug: string;
-  title: string;
-  category: string;
-  featuredImage?: string;
-  thumbnailImage: string;
-};
-
 export const projects: Project[] = Array.from({ length: 20 }, (_, index) => {
   const id = index + 1;
   return {
@@ -191,30 +195,34 @@ export const projects: Project[] = Array.from({ length: 20 }, (_, index) => {
   };
 });
 
-export const testimonials = [
+export const testimonials: Testimonial[] = [
   {
     quote:
       "The team was knowledgeable, friendly, helpful and professional throughout our work together.",
     name: "Satish Singh",
     company: "Nnoweta Chemicals",
+    stars: 5,
   },
   {
     quote:
       "If I needed to find a partner again, I would come back—because I know I can rely on their expertise and experience.",
     name: "Manish Rathi",
     company: "Unicorn Petroleum Pvt. Ltd.",
+    stars: 5,
   },
   {
     quote:
       "Good workflow, a positive attitude and dedicated team members. They fabricated our stall to our preferences and presented a strong variety of design options.",
     name: "Puneet Kohli",
     company: "Friends Timber Pvt. Ltd.",
+    stars: 5,
   },
   {
     quote:
       "The team sent several designs, adapted to our changes and delivered efficiently with a clear focus on quality.",
     name: "Rahul Chhawcharia",
     company: "Traditions Kolkata",
+    stars: 5,
   },
 ];
 
@@ -252,4 +260,3 @@ export const faqs = [
     "Use the proposal form with as much detail as possible, or contact the studio directly by phone or email.",
   ],
 ];
-import { projectMedia } from "./site-images";

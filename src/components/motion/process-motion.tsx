@@ -1,371 +1,216 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { 
+  Compass, 
+  Layers, 
+  Box, 
+  Cpu, 
+  Hammer, 
+  CheckCircle2, 
+  ArrowRight,
+  Sparkles 
+} from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-export function ProcessMotion({ steps }: { steps: string[] }) {
-  const [active, setActive] = useState(0);
-  const mainContainerRef = useRef<HTMLDivElement>(null);
-  const leftPanelRef = useRef<HTMLDivElement>(null);
-  const rightPanelRef = useRef<HTMLDivElement | null>(null);
-  const rightCardsRefs = useRef<(HTMLDivElement | null)[]>([]);
+const STEP_ICONS = [
+  Compass,
+  Layers,
+  Box,
+  Cpu,
+  Hammer,
+  CheckCircle2
+];
 
-  // ---------- DESKTOP: Original GSAP pinning animation (EXACT UNCHANGED) ----------
-  useGSAP(
-    () => {
-      if (!mainContainerRef.current || !leftPanelRef.current) return;
+const STEP_DETAILS = [
+  {
+    title: "Brief & Discovery",
+    desc: "Stakeholder alignment, spatial footprint auditing, and commercial requirement scoping to anchor the project foundation.",
+    tag: "Phase 01"
+  },
+  {
+    title: "Concept Development",
+    desc: "Translating brand guidelines into structural narratives, thematic forms, and fluid visitor circulation pathways.",
+    tag: "Phase 02"
+  },
+  {
+    title: "3D Visualisation",
+    desc: "Photorealistic spatial renders, accurate material & lighting simulations, and structural walkthroughs.",
+    tag: "Phase 03"
+  },
+  {
+    title: "Technical Planning",
+    desc: "CAD blueprints, structural weight calculations, MEP power maps, and rigorous exhibition venue approvals.",
+    tag: "Phase 04"
+  },
+  {
+    title: "Fabrication & Production",
+    desc: "In-house precision carpentry, CNC metalworks, modular assemblies, and custom luxury architectural finishes.",
+    tag: "Phase 05"
+  },
+  {
+    title: "Installation & Handover",
+    desc: "On-site build orchestration, AV/Lighting tuning, flawless snag-clearance, and final show-floor handover.",
+    tag: "Phase 06"
+  },
+];
 
-      const mm = gsap.matchMedia();
+export function ProcessMotion({ steps }: { steps?: string[] }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-      mm.add(
-        {
-          isDesktop: "(min-width: 1024px)",
-          isMobile: "(max-width: 1023px)",
-        },
-        (context) => {
-          const { isDesktop } = context.conditions as { isDesktop: boolean };
-
-          const cardTriggers: ScrollTrigger[] = [];
-          let pinTrigger: ScrollTrigger | null = null;
-
-          if (isDesktop) {
-            // 1. PIN THE LEFT SIDE — desktop only
-            pinTrigger = ScrollTrigger.create({
-              trigger: mainContainerRef.current,
-              start: "top 15%",
-              end: "bottom 85%",
-              pin: leftPanelRef.current,
-              anticipatePin: 1,
-              pinSpacing: false,
-              markers: false,
-            });
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const cards = cardsContainerRef.current?.querySelectorAll(".process-card-item");
+      if (cards && cards.length > 0) {
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 25 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 80%",
+              once: true,
+            },
           }
+        );
+      }
+    }, sectionRef);
 
-          // 2. DETECT ACTIVE STEP during scrolling (Desktop)
-          rightCardsRefs.current.forEach((card, index) => {
-            if (!card) return;
-
-            const trigger = ScrollTrigger.create({
-              trigger: card,
-              start: isDesktop ? "top center+=100" : "top 75%",
-              end: isDesktop ? "bottom center+=100" : "bottom 25%",
-              onToggle: (self) => {
-                if (self.isActive) {
-                  setActive(index);
-                }
-              },
-              markers: false,
-            });
-            cardTriggers.push(trigger);
-          });
-
-          return () => {
-            pinTrigger?.kill();
-            cardTriggers.forEach((t) => t.kill());
-          };
-        }
-      );
-
-      return () => {
-        mm.revert();
-      };
-    },
-    { scope: mainContainerRef, dependencies: [steps] }
-  );
-
-  const scrollToStep = (index: number) => {
-    const targetStep = rightCardsRefs.current[index];
-    if (targetStep) {
-      window.scrollTo({
-        top: targetStep.getBoundingClientRect().top + window.scrollY - 120,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const activeProgressPercent = Math.round(((active + 1) / steps.length) * 100);
-
-  const nextMobileStep = () => {
-    setActive((prev) => (prev < steps.length - 1 ? prev + 1 : 0));
-  };
-
-  const prevMobileStep = () => {
-    setActive((prev) => (prev > 0 ? prev - 1 : steps.length - 1));
-  };
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <div ref={mainContainerRef} className="relative w-full">
-      {/* =================================================================== */}
-      {/* MOBILE ONLY: APP-LIKE SWIPEABLE PROCESS CARD                       */}
-      {/* =================================================================== */}
-      <div className="block lg:hidden">
-        {/* Mobile Header */}
-        <div className="mb-6 space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
-            <span>How a project moves</span>
+    <div ref={sectionRef} className="relative w-full">
+      
+      {/* Header with 2-Line Display & Accent Glow */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)] animate-pulse" />
+            Execution Methodology
           </div>
 
-          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            A clear route from brief to build.
+          <h2 className="mt-4 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+            <span className="relative inline-block pb-1.5">
+              A structured roadmap
+              <span
+                className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent"
+                aria-hidden="true"
+              />
+            </span>
+            <br />
+            <span className="text-[var(--secondary,#b8b6af)]">
+              from initial brief to build.
+            </span>
           </h2>
         </div>
 
-        {/* Mobile Card Layout with Slide Animation */}
-        <div className="relative overflow-hidden rounded-2xl border border-[var(--accent,#ff5a2a)]/40 bg-[#0d0e10] p-6 shadow-2xl backdrop-blur-2xl">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/15 blur-2xl" />
-
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent,#ff5a2a)] font-mono text-[10px] font-bold text-black">
-                0{active + 1}
-              </span>
-              <span className="font-mono text-[11px] font-bold tracking-widest text-[var(--accent,#ff5a2a)] uppercase">
-                STAGE 0{active + 1}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 rounded-full border border-[var(--accent,#ff5a2a)]/40 bg-[var(--accent,#ff5a2a)]/10 px-2.5 py-0.5 font-mono text-[9px] text-[var(--accent,#ff5a2a)]">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping bg-[var(--accent,#ff5a2a)]" />
-              IN PROGRESS
-            </div>
-          </div>
-
-          {/* Animated Content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="py-6"
-            >
-              <h3 className="text-xl font-bold tracking-tight text-white">
-                {steps[active]}
-              </h3>
-
-              <p className="mt-3 text-xs leading-relaxed text-white/60">
-                Detailed execution phase ensuring alignment with design rules, venue
-                constraints, and production benchmarks.
-              </p>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Bottom Progress Bar */}
-          <div className="relative h-1 w-full overflow-hidden rounded-full bg-white/10">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] to-[#ff825c]"
-              animate={{ width: `${activeProgressPercent}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-
-          {/* Mobile Navigation Footer Controls */}
-          <div className="mt-5 flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={prevMobileStep}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all active:scale-90"
-              aria-label="Previous step"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            {/* Step Indicators */}
-            <div className="flex items-center gap-1.5">
-              {steps.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActive(idx)}
-                  aria-label={`Go to step ${idx + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    active === idx
-                      ? "w-5 bg-[var(--accent,#ff5a2a)]"
-                      : "w-1.5 bg-white/20"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={nextMobileStep}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all active:scale-90"
-              aria-label="Next step"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
+        <p className="max-w-md text-sm leading-relaxed text-[var(--secondary,#b8b6af)]">
+          Every spatial commission moves through a disciplined engineering lifecycle to guarantee that design intent matches physical perfection.
+        </p>
       </div>
 
-      {/* =================================================================== */}
-      {/* DESKTOP ONLY: EXACT ORIGINAL GSAP PINNED SCROLL ANIMATION           */}
-      {/* =================================================================== */}
-      <div className="hidden lg:grid lg:grid-cols-12 lg:gap-14 items-start">
-        {/* LEFT COLUMN: GSAP PINNED PANEL */}
-        <div ref={leftPanelRef} className="lg:col-span-5 h-fit">
-          <div className="space-y-6 py-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent,#ff5a2a)]/30 bg-[var(--accent,#ff5a2a)]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--accent,#ff5a2a)] backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-[var(--accent,#ff5a2a)]" />
-              <span>How a project moves</span>
-            </div>
+      {/* Modern 6-Step Editorial Process Grid */}
+      <div
+        ref={cardsContainerRef}
+        className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        {STEP_DETAILS.map((step, idx) => {
+          const Icon = STEP_ICONS[idx] || Sparkles;
+          const isSelected = activeTab === idx;
 
-            <h2 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-bold leading-[1.1] tracking-tight text-white">
-              A clear route from <br /> brief to build.
-            </h2>
-
-            <p className="text-xs leading-relaxed text-white/55 lg:text-[13px]">
-              Our structured process ensures design intent is preserved from the
-              initial sketch right through to final installation.
-            </p>
-
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] p-4 shadow-xl backdrop-blur-xl">
-              <div className="flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-wider text-white/50">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-[var(--accent,#ff5a2a)]" />
-                  Pathway Status
-                </span>
-                <span className="font-bold text-[var(--accent,#ff5a2a)]">
-                  0{active + 1} / 0{steps.length}
-                </span>
-              </div>
-
-              <div className="relative mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] to-[#ff825c]"
-                  animate={{ width: `${activeProgressPercent}%` }}
-                  transition={{ duration: 0.35, ease: "circOut" }}
-                />
-              </div>
-
-              <div className="mt-3.5 space-y-1">
-                {steps.map((stepName, idx) => {
-                  const isCurrent = active === idx;
-                  const isPassed = active > idx;
-
-                  return (
-                    <button
-                      key={stepName}
-                      type="button"
-                      onClick={() => scrollToStep(idx)}
-                      className={`group flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left transition-all duration-300 ${
-                        isCurrent
-                          ? "border border-[var(--accent,#ff5a2a)]/40 bg-white/[0.08] text-white shadow-md"
-                          : "text-white/40 hover:bg-white/[0.03] hover:text-white/70"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full font-mono text-[8px] font-bold transition-all duration-300 ${
-                            isCurrent
-                              ? "bg-[var(--accent,#ff5a2a)] text-black shadow-[0_0_8px_rgba(255,90,42,0.6)]"
-                              : isPassed
-                              ? "bg-[var(--accent,#ff5a2a)]/20 text-[var(--accent,#ff5a2a)]"
-                              : "bg-white/10 text-white/50"
-                          }`}
-                        >
-                          {isPassed ? <CheckCircle2 size={10} /> : idx + 1}
-                        </div>
-
-                        <span className="text-[11px] font-medium tracking-wide">
-                          {stepName}
-                        </span>
-                      </div>
-
-                      {isCurrent && (
-                        <span className="font-mono text-[8px] font-semibold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">
-                          Active
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: SCROLLABLE CARDS */}
-        <div ref={rightPanelRef} className="space-y-5 lg:col-span-7">
-          {steps.map((stepText, i) => {
-            const isActive = active === i;
-
-            return (
-              <motion.div
-                key={stepText}
-                data-step-index={i}
-                ref={(el) => {
-                  rightCardsRefs.current[i] = el;
-                }}
-                initial={false}
-                animate={{
-                  scale: isActive ? 1.01 : 0.98,
-                  opacity: isActive ? 1 : 0.35,
-                }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className={`group relative overflow-hidden rounded-xl border p-6 transition-colors duration-300 transform-gpu lg:p-7 ${
-                  isActive
-                    ? "border-[var(--accent,#ff5a2a)]/50 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent shadow-[0_15px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl"
-                    : "border-white/10 bg-white/[0.015]"
+          return (
+            <div
+              key={step.title}
+              onMouseEnter={() => setActiveTab(idx)}
+              className={`process-card-item group relative overflow-hidden rounded-2xl border p-7 transition-all duration-300 ${
+                isSelected
+                  ? "border-[var(--accent,#ff5a2a)]/60 bg-[var(--elevated,#191c1f)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] -translate-y-1"
+                  : "border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] hover:border-[var(--border,rgba(241,239,233,0.3))] hover:bg-[var(--elevated,#191c1f)]/70"
+              }`}
+            >
+              {/* Subtle Ambient Hover Glow */}
+              <div
+                className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/15 blur-2xl transition-opacity duration-300 ${
+                  isSelected ? "opacity-100" : "opacity-0"
                 }`}
-              >
-                <div
-                  className={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[var(--accent,#ff5a2a)]/20 blur-3xl transition-opacity duration-300 ${
-                    isActive ? "opacity-100" : "opacity-0"
-                  }`}
-                />
+              />
 
-                <div className="flex items-center justify-between">
+              {/* Card Header: Stage Number & Icon */}
+              <div className="flex items-center justify-between border-b border-[var(--border,rgba(241,239,233,0.08))] pb-4">
+                <div className="flex items-center gap-2.5">
                   <span
-                    className={`font-mono text-[10px] font-bold tracking-widest transition-colors duration-200 ${
-                      isActive ? "text-[var(--accent,#ff5a2a)]" : "text-white/30"
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg font-mono text-xs font-bold transition-colors duration-300 ${
+                      isSelected
+                        ? "bg-[var(--accent,#ff5a2a)] text-black"
+                        : "bg-white/10 text-[var(--text,#f1efe9)]"
                     }`}
                   >
-                    STAGE 0{i + 1}
+                    0{idx + 1}
                   </span>
-
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ scale: 0.85, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.85, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center gap-1.5 rounded-full border border-[var(--accent,#ff5a2a)]/40 bg-[var(--accent,#ff5a2a)]/10 px-2.5 py-0.5 font-mono text-[9px] text-[var(--accent,#ff5a2a)] backdrop-blur-md"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full animate-ping bg-[var(--accent,#ff5a2a)]" />
-                        IN PROGRESS
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <span className="font-mono text-[11px] font-semibold tracking-wider text-[var(--secondary,#b8b6af)] uppercase">
+                    {step.tag}
+                  </span>
                 </div>
 
-                <h3
-                  className={`mt-6 text-xl font-bold tracking-tight transition-all duration-300 sm:text-2xl lg:text-[26px] ${
-                    isActive ? "translate-x-1 text-white" : "text-white/60"
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-300 ${
+                    isSelected
+                      ? "border-[var(--accent,#ff5a2a)]/50 bg-[var(--accent,#ff5a2a)]/15 text-[var(--accent,#ff5a2a)]"
+                      : "border-white/10 bg-white/5 text-[var(--secondary,#b8b6af)] group-hover:text-[var(--text,#f1efe9)]"
                   }`}
                 >
-                  {stepText}
-                </h3>
+                  <Icon size={18} />
+                </div>
+              </div>
 
-                <p className="mt-3 text-[11px] leading-relaxed text-white/50 lg:text-xs">
-                  Detailed execution phase ensuring alignment with design rules,
-                  venue constraints, and production benchmarks.
+              {/* Title & Body */}
+              <div className="mt-5">
+                <h3
+                  className={`text-xl font-bold tracking-tight transition-colors duration-300 ${
+                    isSelected
+                      ? "text-[var(--accent,#ff5a2a)]"
+                      : "text-[var(--text,#f1efe9)]"
+                  }`}
+                >
+                  {step.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--secondary,#b8b6af)]">
+                  {step.desc}
                 </p>
-              </motion.div>
-            );
-          })}
-        </div>
+              </div>
+
+              {/* Bottom Subtle Indicator */}
+              <div className="mt-6 flex items-center justify-between border-t border-[var(--border,rgba(241,239,233,0.08))] pt-4">
+                <span className="text-[11px] font-mono tracking-wider text-[var(--muted,#7d807e)]">
+                  Standard Milestone
+                </span>
+                <ArrowRight
+                  size={15}
+                  className={`transition-all duration-300 ${
+                    isSelected
+                      ? "text-[var(--accent,#ff5a2a)] translate-x-1"
+                      : "text-[var(--muted,#7d807e)] opacity-40 group-hover:opacity-100"
+                  }`}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
+
     </div>
   );
 }

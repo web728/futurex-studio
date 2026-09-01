@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { HeroSceneWave as HeroScene } from "./hero-scene-wave";
@@ -9,60 +9,64 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const ROTATING_WORDS = [
+  "Architectural depth.",
+  "Spatial innovation.",
+  "Immersive design.",
+  "Visionary structures.",
+];
+
 export function CinematicHero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const taglineRef = useRef<HTMLParagraphElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [isFlipping, setIsFlipping] = useState(false);
 
+  // 3D Flip Text Transition Timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
+        setIsFlipping(false);
+      }, 420);
+    }, 3800);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // GSAP Smooth Reveal & Scroll Exit
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const animatedElements = [
-        taglineRef.current,
-        titleRef.current,
-        subtitleRef.current,
-        ctaRef.current,
-        scrollIndicatorRef.current,
-      ];
+      const items = contentRef.current?.querySelectorAll(".hero-animate-item");
+      if (!items || items.length === 0) return;
 
-      // 1. Initial hidden state
-      gsap.set(animatedElements, {
-        autoAlpha: 0,
-        y: 45,
+      // 1. Initial State
+      gsap.set(items, { autoAlpha: 0, y: 30 });
+
+      // 2. Entrance Timeline
+      gsap.to(items, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 1.1,
+        ease: "power3.out",
+        stagger: 0.12,
+        delay: 0.1,
       });
 
-      // 2. Cinematic entrance timeline on page load
-      const entranceTl = gsap.timeline({
-        defaults: { ease: "power4.out", duration: 1.1 },
-      });
-
-      entranceTl
-        .to(taglineRef.current, { autoAlpha: 1, y: 0, delay: 0.1 })
-        .to(titleRef.current, { autoAlpha: 1, y: 0 }, "-=0.85")
-        .to(subtitleRef.current, { autoAlpha: 1, y: 0 }, "-=0.85")
-        .to(ctaRef.current, { autoAlpha: 1, y: 0 }, "-=0.75")
-        .to(scrollIndicatorRef.current, { autoAlpha: 1, y: 0 }, "-=0.75");
-
-      // 3. Scroll Out & Reverse Scroll-In (Ensures text never stays hidden at top)
-      gsap.to(animatedElements, {
+      // 3. Scroll Exit
+      gsap.to(contentRef.current, {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: "70% top",
-          scrub: 0.5, // Smooth scrubbing
-          toggleActions: "play reverse play reverse",
+          end: "65% top",
+          scrub: 0.6,
         },
         y: -40,
-        autoAlpha: 0, // autoAlpha handles visibility + opacity cleanly
-        stagger: 0.05,
-        ease: "power1.inOut",
+        autoAlpha: 0,
+        ease: "none",
       });
     }, containerRef);
-
-    // Refresh ScrollTrigger to calculate accurate bounds
-    ScrollTrigger.refresh();
 
     return () => ctx.revert();
   }, []);
@@ -70,64 +74,77 @@ export function CinematicHero() {
   return (
     <section
       ref={containerRef}
-      className="relative flex min-h-[75vh] w-full flex-col justify-between overflow-hidden bg-[#0a0a0c] px-6 py-10 text-white lg:px-16"
+      className="relative flex min-h-[90vh] lg:min-h-screen w-full items-center justify-center overflow-hidden bg-[var(--background,#0b0c0d)] px-6 py-20 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white"
     >
-      {/* WebGL Background Scene */}
+      {/* 1. WebGL Canvas Scene */}
       <HeroScene />
 
-      {/* Dynamic Radial Overlay */}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,rgba(0,0,0,0.85)_100%)]" />
+      {/* 2. Backdrop Radial Gradient with Accent Glow */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,rgba(255,90,42,0.03)_0%,rgba(11,12,13,0.95)_85%)]"
+        aria-hidden="true"
+      />
 
-      {/* Hero Main Content Area */}
-      <div className="relative z-[10] my-auto max-w-5xl py-8 lg:py-12">
-        <p
-          ref={taglineRef}
-          className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent,#d4af37)] will-change-transform"
-        >
-          Spatial & Spatial Experience Studio
+      {/* 3. Centered Content Container */}
+      <div
+        ref={contentRef}
+        className="relative z-[10] mx-auto flex max-w-4xl flex-col items-center text-center"
+      >
+        {/* Eyebrow / Tagline */}
+        <p className="hero-animate-item mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent,#ff5a2a)]">
+          Spatial Experience & Exhibition Studio
         </p>
 
-        <h1
-          ref={titleRef}
-          className="text-[clamp(2.25rem,5.5vw,5rem)] font-bold leading-[1.05] tracking-tight text-white will-change-transform"
-        >
-          Architectural depth. <br />
-          <span className="text-white/60">Flawless execution.</span>
+        {/* Display Heading with Dynamic 3D Rolling Text & Glow Underline */}
+        <h1 className="hero-animate-item text-[clamp(2.25rem,5.5vw,4.75rem)] font-bold tracking-tight text-[var(--text,#f1efe9)] leading-[1.15]">
+          <span className="relative inline-block overflow-hidden [perspective:800px] align-top py-1">
+            <span
+              className="inline-block transition-transform transition-opacity duration-[420ms] will-change-transform"
+              style={{
+                transitionTimingFunction: "var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1))",
+                transform: isFlipping
+                  ? "rotateX(75deg) translateY(-22px)"
+                  : "rotateX(0deg) translateY(0)",
+                opacity: isFlipping ? 0 : 1,
+                transformOrigin: "50% 50% -20px",
+              }}
+            >
+              {ROTATING_WORDS[index]}
+            </span>
+
+            {/* Glowing Accent Underline */}
+            <span
+              className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-[var(--accent,#ff5a2a)] to-transparent opacity-90 shadow-[0_0_12px_rgba(255,90,42,0.6)]"
+              aria-hidden="true"
+            />
+          </span>
+          <br />
+          <span className="text-[var(--secondary,#b8b6af)]">
+            Flawless execution.
+          </span>
         </h1>
 
-        <p
-          ref={subtitleRef}
-          className="mt-6 max-w-2xl text-base font-light text-white/70 lg:text-lg will-change-transform"
-        >
+        {/* Editorial Subtitle */}
+        <p className="hero-animate-item mt-6 max-w-2xl text-base font-normal leading-relaxed text-[var(--secondary,#b8b6af)] md:text-lg">
           We bridge physical craftsmanship and visionary spatial design to turn
           brand presence into unforgettable, immersive environments.
         </p>
 
-        <div ref={ctaRef} className="mt-8 flex flex-wrap gap-4 will-change-transform">
+        {/* Action Buttons */}
+        <div className="hero-animate-item mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
             href="/projects"
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white px-7 py-3 text-sm font-medium text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-[var(--text,#f1efe9)] px-8 py-3.5 text-sm font-semibold text-[var(--background,#0b0c0d)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_25px_rgba(241,239,233,0.3)]"
           >
-            <span>Explore Work</span>
+            Explore Work
           </a>
           <a
             href="/contact"
-            className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 py-3 text-sm font-medium text-white transition-all duration-300 hover:border-white hover:bg-white/10"
+            className="inline-flex items-center justify-center rounded-full border border-[var(--border,rgba(241,239,233,0.18))] bg-[var(--surface,#121416)] px-8 py-3.5 text-sm font-medium text-[var(--text,#f1efe9)] backdrop-blur-sm transition-all duration-300 hover:border-[var(--accent,#ff5a2a)] hover:text-[var(--accent,#ff5a2a)] hover:bg-[var(--elevated,#191c1f)]"
           >
             Get in Touch
           </a>
         </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div
-        ref={scrollIndicatorRef}
-        className="relative z-[10] flex items-center gap-3 text-xs uppercase tracking-widest text-white/40 will-change-transform"
-      >
-        <div className="h-8 w-[1px] overflow-hidden bg-white/20">
-          <div className="h-full w-full animate-pulse bg-white" />
-        </div>
-        <span>Scroll to Explore</span>
       </div>
     </section>
   );

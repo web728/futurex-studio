@@ -15,208 +15,216 @@ if (typeof window !== "undefined") {
 
 export function EditorialServices() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef<HTMLElement>(null);
-  const titleTextRef = useRef<HTMLHeadingElement>(null);
-  const serviceRowsRef = useRef<Map<number, HTMLDivElement>>(new Map());
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Kinetic Title Reveal (Only on initial scroll entry)
-      if (titleTextRef.current) {
+      // 1. Subtle Header Reveal
+      const headerElements = headerRef.current?.querySelectorAll(".serv-anim");
+      if (headerElements && headerElements.length > 0) {
         gsap.fromTo(
-          titleTextRef.current,
-          { opacity: 0, y: 30 },
+          headerElements,
+          { opacity: 0, y: 24 },
           {
             opacity: 1,
             y: 0,
-            duration: 1,
+            duration: 0.75,
             ease: "power2.out",
+            stagger: 0.08,
             scrollTrigger: {
-              trigger: titleTextRef.current,
-              start: "top 85%",
+              trigger: sectionRef.current,
+              start: "top 80%",
               once: true,
             },
           }
         );
       }
-
-      // 2. ScrollTrigger Sync for Active Row Selection
-      serviceRowsRef.current.forEach((row, idx) => {
-        if (!row) return;
-
-        ScrollTrigger.create({
-          trigger: row,
-          start: "top 55%",
-          end: "bottom 55%",
-          onEnter: () => setActiveIndex(idx),
-          onEnterBack: () => setActiveIndex(idx),
-        });
-      });
-    }, containerRef);
+    }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
     <section
-      ref={containerRef}
-      className="relative overflow-hidden bg-[#0d0e0e] py-12 text-white lg:py-20"
+      ref={sectionRef}
+      id="services"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-20 lg:py-28 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white"
     >
-      {/* Top Transition Gradient Layer */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-12 bg-gradient-to-b from-[#f0ece5] via-[#0d0e0e]/60 to-transparent" />
+      {/* Top Divider Line */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--border,rgba(241,239,233,0.18))] to-transparent opacity-60" />
 
-      <div className="container relative z-10">
-        {/* Header Grid */}
-        <div className="grid gap-6 border-b border-white/10 pb-8 lg:grid-cols-[1.1fr_.9fr] lg:items-end">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent,#ff5a2a)]">
+      {/* Subtle Accent Glow */}
+      <div
+        className="pointer-events-none absolute right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[140px]"
+        aria-hidden="true"
+      />
+
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        {/* Header Grid: Strictly Balanced */}
+        <div
+          ref={headerRef}
+          className="grid gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:grid-cols-12 lg:items-end"
+        >
+          {/* Left Title */}
+          <div className="lg:col-span-7">
+            <p className="serv-anim text-xs font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
               What We Deliver
             </p>
-            <h2
-              ref={titleTextRef}
-              className="mt-3 text-[clamp(2.4rem,4.8vw,5rem)] font-bold leading-[0.95] tracking-tight"
-            >
-              One studio from <br />
-              <span className="text-[var(--accent,#ff5a2a)]">
-                first sketch
-              </span>{" "}
-              to show floor.
+
+            <h2 className="serv-anim mt-3 text-[clamp(2.2rem,4.2vw,3.85rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+              <span className="relative inline-block pb-1.5">
+                One studio from sketch
+                {/* Glowing Underline */}
+                <span
+                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent"
+                  aria-hidden="true"
+                />
+              </span>
+              <br />
+              <span className="text-[var(--secondary,#b8b6af)]">
+                to final show floor.
+              </span>
             </h2>
           </div>
 
-          <p className="max-w-lg text-sm leading-relaxed text-white/60 lg:justify-self-end lg:text-base">
-            Choose a complete design-and-build partnership or bring us into a
-            specific stage. Every discipline stays aligned to the same spatial
-            vision.
-          </p>
+          {/* Right Lead Description */}
+          <div className="lg:col-span-5 lg:pb-1">
+            <p className="serv-anim max-w-md text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-base">
+              Choose an end-to-end turnkey build or integrate our specialized
+              team into specific architectural, 3D visualization, or fabrication
+              phases.
+            </p>
+          </div>
         </div>
 
-        {/* Content Section */}
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          {/* Left Sticky Image Frame */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/15 bg-[#121313] shadow-2xl transition-all duration-500 lg:aspect-[4/5]">
-              {/* Dynamic Image Crossfade Layer */}
+        {/* Content Section: Sticky Image (Left) + Interactive Rows (Right) */}
+        <div className="mt-12 grid gap-12 lg:grid-cols-12 lg:items-start">
+          
+          {/* Left Sticky Preview Container */}
+          <div className="lg:col-span-5 lg:sticky lg:top-28">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.16))] bg-[var(--surface,#121416)] shadow-2xl transition-all duration-500 hover:border-[var(--accent,#ff5a2a)]/40 lg:aspect-[4/4.8]">
+              
+              {/* Image Crossfade Stack */}
               <div className="relative h-full w-full overflow-hidden">
                 {services.map((service, index) => {
                   const serviceImage =
                     (service as { image?: string }).image ||
                     siteImages.homeServices?.src ||
-                    "";
+                    "/gallery/project-1.jpg";
                   const isCurrent = activeIndex === index;
 
                   return (
                     <Image
                       key={service.slug || index}
                       src={serviceImage}
-                      alt={service.title || "Service Frame"}
+                      alt={service.title || "Service Preview"}
                       fill
-                      sizes="(max-width: 1024px) 100vw, 45vw"
+                      sizes="(max-width: 1024px) 100vw, 40vw"
                       priority={index === 0}
-                      className={`object-cover grayscale-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0 ${
-                        isCurrent ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                      className={`object-cover transition-all duration-700 ease-out ${
+                        isCurrent
+                          ? "scale-100 opacity-100"
+                          : "scale-105 opacity-0 pointer-events-none"
                       }`}
                     />
                   );
                 })}
               </div>
 
-              {/* Gradient Protection Layer */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+              {/* Gradient Scrim */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--background,#0b0c0d)]/85 via-black/20 to-transparent" />
 
-              {/* Glass Counter Overlay */}
-              <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-xl border border-white/15 bg-black/40 p-4 backdrop-blur-md">
-                <span className="font-mono text-xs tracking-widest text-white/70">
-                  PHASE 0{activeIndex + 1} / 0{services.length}
+              {/* Bottom Information Pill */}
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-md">
+                <span className="font-mono text-xs uppercase tracking-widest text-[var(--secondary,#b8b6af)]">
+                  Stage 0{activeIndex + 1} / 0{services.length}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-[var(--accent,#ff5a2a)]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent,#ff5a2a)]">
                   {services[activeIndex]?.title}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right Service Rows */}
-          <div className="divide-y divide-white/10 border-b border-t border-white/10">
+          {/* Right Interactive Rows */}
+          <div className="divide-y divide-[var(--border,rgba(241,239,233,0.12))] border-b border-t border-[var(--border,rgba(241,239,233,0.12))] lg:col-span-7">
             {services.map((service, index) => {
               const isActive = activeIndex === index;
 
               return (
                 <article
                   key={service.slug || index}
-                  ref={(el: HTMLDivElement | null) => {
-                    if (el) {
-                      serviceRowsRef.current.set(index, el);
-                    } else {
-                      serviceRowsRef.current.delete(index);
-                    }
-                  }}
                   onMouseEnter={() => setActiveIndex(index)}
-                  className="group relative cursor-pointer py-6 transition-all duration-300"
+                  className={`group relative cursor-pointer py-7 transition-colors duration-300 ${
+                    isActive ? "bg-white/[0.02]" : "hover:bg-white/[0.01]"
+                  }`}
                 >
-                  <div
-                    className={`absolute inset-0 rounded-xl bg-white/[0.02] opacity-0 transition-opacity duration-300 ${
-                      isActive ? "opacity-100" : "group-hover:opacity-100"
-                    }`}
-                  />
-
                   <Link
                     href={`/services#${service.slug}`}
-                    className="relative z-10 block"
+                    className="relative z-10 block px-4 sm:px-6"
                   >
                     <div className="grid gap-4 sm:grid-cols-[3rem_1fr_auto] sm:items-center">
-                      {/* Counter */}
+                      
+                      {/* Step Number */}
                       <span
-                        className={`font-mono text-sm font-bold transition-colors duration-300 ${
+                        className={`font-mono text-sm font-semibold transition-colors duration-300 ${
                           isActive
                             ? "text-[var(--accent,#ff5a2a)]"
-                            : "text-white/30 group-hover:text-white/60"
+                            : "text-[var(--muted,#7d807e)] group-hover:text-[var(--secondary,#b8b6af)]"
                         }`}
                       >
                         {service.number || `0${index + 1}`}
                       </span>
 
-                      {/* Title & Accordion */}
-                      <div>
+                      {/* Title & Smooth Accordion Description */}
+                      <div className="pr-4">
                         <h3
-                          className={`text-[clamp(1.6rem,2.5vw,2.5rem)] font-bold tracking-tight transition-colors duration-300 ${
+                          className={`text-[clamp(1.4rem,2.2vw,2rem)] font-bold tracking-tight transition-colors duration-300 ${
                             isActive
-                              ? "text-white"
-                              : "text-white/40 group-hover:text-white/80"
+                              ? "text-[var(--text,#f1efe9)]"
+                              : "text-[var(--muted,#7d807e)] group-hover:text-[var(--text,#f1efe9)]"
                           }`}
                         >
                           {service.title}
                         </h3>
 
                         <div
-                          className={`grid transition-all duration-300 ease-in-out ${
+                          className={`grid transition-all duration-300 ease-out ${
                             isActive
-                              ? "mt-3 grid-rows-[1fr] opacity-100"
+                              ? "mt-2 grid-rows-[1fr] opacity-100"
                               : "mt-0 grid-rows-[0fr] opacity-0"
                           }`}
                         >
-                          <p className="max-w-xl overflow-hidden text-sm leading-relaxed text-white/50">
+                          <p className="overflow-hidden text-sm leading-relaxed text-[var(--secondary,#b8b6af)]">
                             {service.description}
                           </p>
                         </div>
                       </div>
 
-                      {/* Arrow Icon */}
+                      {/* Action Arrow */}
                       <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
                           isActive
-                            ? "rotate-45 border-[var(--accent,#ff5a2a)] bg-[var(--accent,#ff5a2a)] text-white"
-                            : "border-white/10 text-white/40 group-hover:border-white/30 group-hover:text-white"
+                            ? "border-[var(--accent,#ff5a2a)] bg-[var(--accent,#ff5a2a)] text-white shadow-[0_0_15px_rgba(255,90,42,0.4)]"
+                            : "border-[var(--border,rgba(241,239,233,0.14))] text-[var(--muted,#7d807e)] group-hover:border-[var(--border,rgba(241,239,233,0.3))] group-hover:text-[var(--text,#f1efe9)]"
                         }`}
                       >
-                        <ArrowUpRight size={18} />
+                        <ArrowUpRight
+                          size={18}
+                          className={`transition-transform duration-300 ${
+                            isActive ? "-translate-y-0.5 translate-x-0.5" : ""
+                          }`}
+                        />
                       </div>
+
                     </div>
                   </Link>
                 </article>
               );
             })}
           </div>
+
         </div>
       </div>
     </section>
