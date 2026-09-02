@@ -2,13 +2,11 @@ import type { MetadataRoute } from "next";
 import { siteUrl as rawSiteUrl } from "@/data/site";
 
 export default function robots(): MetadataRoute.Robots {
-  // Normalize base URL (ensure no double slashes)
-  const baseUrl = (rawSiteUrl || "https://studiofuturex.com").replace(/\/+$/, "");
-  
-  // Staging / Preview environment safeguard
-  const isNoIndex =
-    process.env.NEXT_PUBLIC_NOINDEX === "true" ||
-    process.env.VERCEL_ENV === "preview";
+  // Normalize base URL
+  const baseUrl = (rawSiteUrl || "https://futurexstudio.com").replace(/\/+$/, "");
+
+  // Staging safe check: only block if explicitly defined
+  const isNoIndex = process.env.NEXT_PUBLIC_NOINDEX === "true";
 
   if (isNoIndex) {
     return {
@@ -27,9 +25,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          "/_next/",
           "/admin/",
-          "/*.json$", // API payloads crawl waste na karein
         ],
       },
     ],
