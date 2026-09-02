@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     company.positioning ||
     "Turnkey exhibition stand design, 3D spatial visualization, and precision workshop fabrication for world-class trade shows and brand pavilions.",
     verification: {
-    google: "XYZ_AAPKA_CODE_123", 
+    google: "Td2zsPYRs_TPqVYctI5h9aFTrhu-lBdAnOOZP02TzQA", 
   },
   keywords: [
     "Exhibition Stand Design",
