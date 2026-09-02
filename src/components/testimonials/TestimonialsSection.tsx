@@ -153,7 +153,7 @@ export function TestimonialsSection({
                   </div>
                 </div>
                 <p className="text-[11px] font-medium text-[var(--secondary,#b8b6af)]">
-                  19 Verified Google Reviews
+                 Verified Google Reviews
                 </p>
               </div>
             </div>

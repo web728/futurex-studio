@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
@@ -57,8 +57,8 @@ export function FeaturedProjectStory({ projects }: { projects?: Project[] }) {
     }
   );
 
-  // Repeat for continuous seamless loop
-  const displayItems = [...rawItems, ...rawItems];
+  // Repeat for continuous seamless loop (3x for better flow)
+  const displayItems = [...rawItems, ...rawItems, ...rawItems];
 
   // 1. Header Entrance Reveal
   useEffect(() => {
@@ -87,44 +87,63 @@ export function FeaturedProjectStory({ projects }: { projects?: Project[] }) {
     return () => ctx.revert();
   }, []);
 
-  // 2. Ultra-Smooth Continuous Kinetic Marquee (75s Calm Architectural Pace)
+  // 2. Butter-Smooth Continuous Marquee with Perfect Loop
   useEffect(() => {
     if (!trackRef.current) return;
 
     const ctx = gsap.context(() => {
-      tweenRef.current = gsap.to(trackRef.current, {
-        xPercent: -50,
-        ease: "none",
-        duration: 75, // Slow, elegant speed
-        repeat: -1,
-      });
+      const track = trackRef.current;
+      if (!track) return;
+
+      // Wait for images to load for accurate width
+      const timer = setTimeout(() => {
+        const totalWidth = track.scrollWidth;
+        const itemCount = rawItems.length;
+        const singleCycleWidth = totalWidth / 3; // Since we have 3 repeats
+
+        tweenRef.current = gsap.to(track, {
+          x: -singleCycleWidth,
+          ease: "none",
+          duration: 75,
+          repeat: -1,
+          repeatRefresh: true, // Recalculate on each repeat for perfect loop
+          modifiers: {
+            x: gsap.utils.unitize(x => {
+              const val = parseFloat(x);
+              return val % singleCycleWidth;
+            })
+          }
+        });
+      }, 500);
+
+      return () => clearTimeout(timer);
     }, sectionRef);
 
     return () => ctx.revert();
+  }, [rawItems.length]);
+
+  // Smooth Momentum Pause & Resume with ease
+  const handleMouseEnter = useCallback(() => {
+    if (!tweenRef.current) return;
+    gsap.to(tweenRef.current, { timeScale: 0, duration: 0.6, ease: "power3.inOut" });
   }, []);
 
-  // Smooth Momentum Pause & Resume
-  const handleMouseEnter = () => {
+  const handleMouseLeave = useCallback(() => {
     if (!tweenRef.current) return;
-    gsap.to(tweenRef.current, { timeScale: 0, duration: 0.9, ease: "power2.out" });
-  };
-
-  const handleMouseLeave = () => {
-    if (!tweenRef.current) return;
-    gsap.to(tweenRef.current, { timeScale: 1, duration: 0.9, ease: "power2.out" });
-  };
+    gsap.to(tweenRef.current, { timeScale: 1, duration: 0.6, ease: "power3.inOut" });
+  }, []);
 
   // Smooth Gentle Step on Arrow Click
-  const manualNudge = (direction: "left" | "right") => {
+  const manualNudge = useCallback((direction: "left" | "right") => {
     if (!tweenRef.current) return;
-    const shift = direction === "left" ? 0.04 : -0.04;
+    const shift = direction === "left" ? 0.05 : -0.05;
     const newProgress = gsap.utils.wrap(0, 1, tweenRef.current.progress() - shift);
     gsap.to(tweenRef.current, {
       progress: newProgress,
-      duration: 0.8,
-      ease: "power3.out",
+      duration: 0.7,
+      ease: "power2.inOut",
     });
-  };
+  }, []);
 
   return (
     <section
@@ -203,11 +222,14 @@ export function FeaturedProjectStory({ projects }: { projects?: Project[] }) {
           onMouseLeave={handleMouseLeave}
           className="relative mt-12 w-full overflow-hidden rounded-2xl py-2 select-none"
         >
-          {/* Sub-Pixel Motion Track */}
+          {/* GPU-Accelerated Smooth Motion Track */}
           <div
             ref={trackRef}
-            className="flex gap-6 w-max will-change-transform"
-            style={{ transform: "translate3d(0, 0, 0)" }}
+            className="flex gap-6 will-change-transform"
+            style={{ 
+              transform: "translate3d(0, 0, 0)",
+              backfaceVisibility: "hidden"
+            }}
           >
             {displayItems.map((project, idx) => (
               <Link
@@ -232,6 +254,7 @@ export function FeaturedProjectStory({ projects }: { projects?: Project[] }) {
                     fill
                     sizes="(max-width: 768px) 300px, 440px"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    priority={idx < 4}
                   />
 
                   {/* Scrim Overlay */}
