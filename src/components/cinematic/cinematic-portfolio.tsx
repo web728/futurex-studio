@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useTransition, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useTransition, useCallback, memo, useMemo } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
@@ -140,363 +140,225 @@ const PortfolioCard = memo(({
 
 PortfolioCard.displayName = "PortfolioCard";
 
-  export function CinematicPortfolio({ projects }: PortfolioProps) {
-    const categories = [
-      "All",
-      ...Array.from(new Set(projects.map((project) => project.category))),
-    ];
-    const [activeCategory, setActiveCategory] = useState("All");
-    const [, startTransition] = useTransition();
+export function CinematicPortfolio({ projects }: PortfolioProps) {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-    const filteredProjects =
-      activeCategory === "All"
-        ? projects
-        : projects.filter((p) => p.category === activeCategory);
+  // Extract Unique Categories Cleanly
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(projects.map((p) => p.category).filter(Boolean)));
+    return ["All", ...cats];
+  }, [projects]);
 
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [zoomScale, setZoomScale] = useState<number>(1);
-    const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-    const [isTouchDevice, setIsTouchDevice] = useState(false);
+  // Filtered List
+  const filteredProjects = useMemo(() => {
+    if (activeCategory === "All") return projects;
+    return projects.filter((p) => p.category === activeCategory);
+  }, [projects, activeCategory]);
 
-    const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
-    const [cursorHovered, setCursorHovered] = useState(false);
-    const [cursorText, setCursorText] = useState("");
+  // Lightbox Handlers
+  const openLightbox = (index: number) => {
+    setSelectedIndex(index);
+    document.body.style.overflow = "hidden";
+  };
 
-    const sectionRef = useRef<HTMLDivElement>(null);
-    const galleryGridRef = useRef<HTMLDivElement>(null);
+  const closeLightbox = useCallback(() => {
+    setSelectedIndex(null);
+    document.body.style.overflow = "";
+  }, []);
 
-    useEffect(() => {
-      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    }, []);
+  const nextImage = useCallback(() => {
+    if (selectedIndex === null) return;
+    setSelectedIndex((prev) => (prev! + 1) % filteredProjects.length);
+  }, [selectedIndex, filteredProjects.length]);
 
-    const handleCategoryChange = (cat: string) => {
-      startTransition(() => {
-        setActiveCategory(cat);
-      });
-    };
+  const prevImage = useCallback(() => {
+    if (selectedIndex === null) return;
+    setSelectedIndex((prev) => (prev! - 1 + filteredProjects.length) % filteredProjects.length);
+  }, [selectedIndex, filteredProjects.length]);
 
-    useEffect(() => {
-      if (!galleryGridRef.current) return;
-
-      const ctx = gsap.context(() => {
-        const items = galleryGridRef.current?.querySelectorAll("[data-gallery-item]");
-        if (!items || items.length === 0) return;
-
-        items.forEach((item) => {
-          const speed = parseFloat(item.getAttribute("data-parallax") || "0.05");
-          const cardInner = item.querySelector("[data-card-inner]");
-
-          if (cardInner) {
-            gsap.to(cardInner, {
-              y: () => -15 * speed,
-              ease: "none",
-              scrollTrigger: {
-                trigger: item,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 0.5,
-              },
-            });
-          }
-        });
-      }, sectionRef);
-
-      return () => ctx.revert();
-    }, [filteredProjects]);
-
-    const openLightbox = useCallback((index: number) => {
-      setSelectedIndex(index);
-      setZoomScale(1);
-      setPanPosition({ x: 0, y: 0 });
-      document.body.style.overflow = "hidden";
-    }, []);
-
-    const closeLightbox = useCallback(() => {
-      setSelectedIndex(null);
-      setZoomScale(1);
-      setPanPosition({ x: 0, y: 0 });
-      document.body.style.overflow = "";
-    }, []);
-
-    const nextImage = useCallback(() => {
+  // Global Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedIndex === null) return;
-      setSelectedIndex((prev) => ((prev! + 1) % filteredProjects.length));
-      setZoomScale(1);
-      setPanPosition({ x: 0, y: 0 });
-    }, [selectedIndex, filteredProjects.length]);
-
-    const prevImage = useCallback(() => {
-      if (selectedIndex === null) return;
-      setSelectedIndex((prev) => (prev! - 1 + filteredProjects.length) % filteredProjects.length);
-      setZoomScale(1);
-      setPanPosition({ x: 0, y: 0 });
-    }, [selectedIndex, filteredProjects.length]);
-
-    useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (selectedIndex === null) return;
-        if (e.key === "Escape") closeLightbox();
-        if (e.key === "ArrowRight") nextImage();
-        if (e.key === "ArrowLeft") prevImage();
-      };
-
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedIndex, closeLightbox, nextImage, prevImage]);
-
-    const toggleZoom = () => {
-      if (zoomScale > 1) {
-        setZoomScale(1);
-        setPanPosition({ x: 0, y: 0 });
-      } else {
-        setZoomScale(2);
-      }
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextImage();
+      if (e.key === "ArrowLeft") prevImage();
     };
 
-    const handleMouseDown = (e: React.MouseEvent) => {
-      if (zoomScale <= 1) return;
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - panPosition.x, y: e.clientY - panPosition.y });
-    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIndex, closeLightbox, nextImage, prevImage]);
 
-    const handleMouseMovePan = (e: React.MouseEvent) => {
-      if (!isDragging || zoomScale <= 1) return;
-      setPanPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    };
+  return (
+    <section className="relative min-h-screen bg-[var(--background,#0b0c0d)] py-16 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white lg:py-24">
+      
+      {/* Ambient Accent Radial Glow */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 h-[550px] w-[850px] rounded-full bg-[radial-gradient(circle,rgba(255,90,42,0.06)_0%,transparent_75%)] blur-[150px]"
+        aria-hidden="true"
+      />
 
-    const handleMouseUpPan = () => {
-      setIsDragging(false);
-    };
-
-    const handlePointerMoveScreen = (e: React.PointerEvent) => {
-      if (isTouchDevice) return;
-      setCursorPos({ x: e.clientX, y: e.clientY });
-    };
-
-    return (
-      <section
-        ref={sectionRef}
-        onPointerMove={handlePointerMoveScreen}
-        className="relative min-h-screen bg-[#070809] text-white py-20 lg:py-32 overflow-hidden selection:bg-[var(--accent)] selection:text-black"
-      >
-        {/* Architectural Background Grid Layer */}
-        <SpatialArchitecturalGrid />
-
-        {/* Custom Dynamic Cursor */}
-        {!isTouchDevice && (
-          <motion.div
-            className="pointer-events-none fixed top-0 left-0 z-50 rounded-full flex items-center justify-center font-mono text-[10px] tracking-widest uppercase font-bold text-black bg-[var(--accent,white)] shadow-[0_0_20px_rgba(255,255,255,0.4)]"
-            animate={{
-              x: cursorPos.x - (cursorHovered ? 40 : 8),
-              y: cursorPos.y - (cursorHovered ? 40 : 8),
-              width: cursorHovered ? 80 : 16,
-              height: cursorHovered ? 80 : 16,
-              opacity: cursorPos.x < 0 ? 0 : 1,
-            }}
-            transition={{ type: "spring", damping: 30, stiffness: 400, mass: 0.4 }}
-          >
-            {cursorHovered && (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="px-2 text-center"
-              >
-                {cursorText || "View"}
-              </motion.span>
-            )}
-          </motion.div>
-        )}
-
-        {/* Glow Orbs for Ambiance */}
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute top-1/4 -left-48 h-[500px] w-[500px] rounded-full bg-[var(--accent)]/[0.04] blur-[140px]" />
-          <div className="absolute bottom-1/4 -right-48 h-[600px] w-[600px] rounded-full bg-blue-600/[0.03] blur-[160px]" />
-        </div>
-
-        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Header Section with Geometric Accent Line */}
-          <div className="mb-16 flex flex-col justify-between gap-8 border-b border-white/10 pb-10 lg:flex-row lg:items-end">
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-xs uppercase font-mono tracking-[0.25em] text-[var(--accent)]">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>SPATIAL ENVIRONMENT ARCHIVE</span>
-              </div>
-              <h2 className="display text-3xl font-black tracking-tight sm:text-6xl lg:text-5xl">
-                Exhibition Work
-              </h2>
+      <div className="container relative z-10 mx-auto px-6 lg:px-12">
+        
+        {/* Top Filter Bar & Counter */}
+        <div className="mb-12 flex flex-col justify-between gap-6 border-b border-[var(--border,rgba(241,239,233,0.1))] pb-8 lg:flex-row lg:items-end">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
+              <Sparkles size={11} className="text-[var(--accent,#ff5a2a)] animate-pulse" />
+              <span>Curation Index</span>
             </div>
 
-            {/* Clean Category Filters */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {categories.map((cat) => {
-                const isActive = activeCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => handleCategoryChange(cat)}
-                    onMouseEnter={() => {
-                      setCursorHovered(true);
-                      setCursorText("Filter");
-                    }}
-                    onMouseLeave={() => setCursorHovered(false)}
-                    className={`relative px-4 py-2 rounded-full text-xs uppercase font-mono tracking-wider font-semibold transition-all duration-300 border ${
-                      isActive
-                        ? "bg-white text-black border-white shadow-lg"
-                        : "bg-white/5 text-white/60 border-white/10 hover:border-white/30 hover:text-white"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
+            <h2 className="mt-3 text-2xl font-bold tracking-tight text-[var(--text,#f1efe9)] sm:text-3xl lg:text-4xl">
+              Spatial Exhibits
+            </h2>
           </div>
 
-          {/* Clean, Gapless Uniform Grid Layout (3-Column Desktop, 2-Column Tablet) */}
-          <div
-            ref={galleryGridRef}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          >
-            <AnimatePresence>
-              {filteredProjects.map((project, idx) => (
-                <PortfolioCard
-                  key={project.slug || idx}
-                  project={project}
-                  idx={idx}
-                  openLightbox={openLightbox}
-                  setCursorHovered={setCursorHovered}
-                  setCursorText={setCursorText}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Lightbox Modal */}
-        <AnimatePresence>
-          {selectedIndex !== null && filteredProjects[selectedIndex] && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl select-none"
-              onClick={closeLightbox}
-            >
-              <div
-                className="absolute top-0 inset-x-0 z-50 flex items-center justify-between p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-mono text-xs tracking-widest uppercase text-white/50">
-                    {String(selectedIndex + 1).padStart(2, "0")} / {String(filteredProjects.length).padStart(2, "0")}
-                  </span>
-                  <span className="hidden sm:inline-block h-3 w-[1px] bg-white/20" />
-                  <span className="hidden sm:inline-block text-xs font-mono uppercase tracking-widest text-[var(--accent)] font-semibold">
-                    {filteredProjects[selectedIndex].category}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={toggleZoom}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-colors hover:bg-white/20"
-                  >
-                    {zoomScale > 1 ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeLightbox}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white transition-colors hover:bg-white/30"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prevImage();
-                }}
-                className="absolute left-6 top-1/2 z-50 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white hover:text-black"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextImage();
-                }}
-                className="absolute right-6 top-1/2 z-50 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white hover:text-black"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </button>
-
-              <div
-                className="relative h-full w-full max-w-7xl max-h-[85vh] p-4 sm:p-10 flex flex-col items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <motion.div
-                  key={filteredProjects[selectedIndex].slug || selectedIndex}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onDoubleClick={toggleZoom}
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMovePan}
-                  onMouseUp={handleMouseUpPan}
-                  onMouseLeave={handleMouseUpPan}
-                  className={`relative max-h-full max-w-full overflow-hidden rounded-md ${
-                    zoomScale > 1 ? (isDragging ? "cursor-grabbing" : "cursor-grab") : "cursor-zoom-in"
+          {/* Minimal Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            {categories.map((cat) => {
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`rounded-full px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-[var(--accent,#ff5a2a)] text-black shadow-[0_0_15px_rgba(255,90,42,0.35)]"
+                      : "border border-[var(--border,rgba(241,239,233,0.1))] bg-[var(--surface,#121416)] text-[var(--secondary,#b8b6af)] hover:border-[var(--accent,#ff5a2a)]/40 hover:text-[var(--text,#f1efe9)]"
                   }`}
                 >
-                  <motion.div
-                    animate={{
-                      scale: zoomScale,
-                      x: panPosition.x,
-                      y: panPosition.y,
-                    }}
-                    transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                    className="relative max-h-[75vh] w-auto h-auto flex items-center justify-center"
-                  >
-                    <img
-                      src={filteredProjects[selectedIndex].thumbnailImage}
-                      alt={filteredProjects[selectedIndex].title || "Project preview"}
-                      className="max-h-[75vh] w-auto max-w-full object-contain shadow-2xl rounded"
-                      draggable={false}
-                    />
-                    
-                  </motion.div>
-                </motion.div>
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                <div className="mt-6 text-center">
-                  <h3 className="display text-2xl font-bold tracking-tight text-white">
-                    {filteredProjects[selectedIndex].title}
-                  </h3>
-                  <p className="mt-1 text-xs font-mono text-white/50 tracking-wider uppercase">
-                    {filteredProjects[selectedIndex].category}
-                  </p>
+        {/* 3-Column Performance Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          {filteredProjects.map((project, idx) => {
+            const imgSrc = project.thumbnailImage || project.image || "/gallery/project-1.jpg";
+
+            return (
+              <article
+                key={project.slug || idx}
+                onClick={() => openLightbox(idx)}
+                className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] transition-all duration-300 hover:border-[var(--accent,#ff5a2a)]/50 hover:bg-[var(--elevated,#191c1f)] hover:-translate-y-1 shadow-lg"
+              >
+                {/* Image Frame */}
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#070809]">
+                  <Image
+                    src={imgSrc}
+                    alt={project.title || "Exhibition Project"}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--background,#0b0c0d)]/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
+
+                  
+
+                  {/* Corner Expand Action Icon */}
+                  <div className="absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 group-hover:scale-105">
+                    <ArrowUpRight size={14} />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-    );
-  }
+
+
+              </article>
+            );
+          })}
+        </div>
+
+      </div>
+
+      {/* Lightweight Instant Lightbox Modal */}
+      {selectedIndex !== null && filteredProjects[selectedIndex] && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={closeLightbox}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-8 select-none"
+        >
+          {/* Header Controls */}
+          <div
+            className="absolute top-0 inset-x-0 z-50 flex items-center justify-between p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-xs font-bold text-[var(--accent,#ff5a2a)]">
+                {String(selectedIndex + 1).padStart(2, "0")} /{" "}
+                {String(filteredProjects.length).padStart(2, "0")}
+              </span>
+              <span className="h-3 w-px bg-white/20" />
+              <span className="text-xs font-mono uppercase tracking-widest text-[var(--secondary,#b8b6af)]">
+                {filteredProjects[selectedIndex].category}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:bg-white/20 active:scale-95"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Left / Right Nav Arrows */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevImage();
+            }}
+            className="absolute left-4 top-1/2 z-50 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black active:scale-95 sm:left-8"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              nextImage();
+            }}
+            className="absolute right-4 top-1/2 z-50 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black active:scale-95 sm:right-8"
+          >
+            <ChevronRight size={20} />
+          </button>
+
+          {/* Modal Image Box */}
+          <div
+            className="relative flex max-h-[82vh] max-w-5xl flex-col items-center justify-center overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={
+                filteredProjects[selectedIndex].thumbnailImage ||
+                filteredProjects[selectedIndex].image ||
+                "/gallery/project-1.jpg"
+              }
+              alt={filteredProjects[selectedIndex].title}
+              className="max-h-[72vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/10"
+            />
+
+            <div className="mt-4 text-center">
+              <h3 className="text-xl font-bold text-white sm:text-2xl">
+                {filteredProjects[selectedIndex].title}
+              </h3>
+              <p className="mt-1 text-xs font-mono uppercase tracking-widest text-[var(--accent,#ff5a2a)]">
+                {filteredProjects[selectedIndex].category}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
 
 // 3D Tilt Card Container
 function InteractiveTiltCard({

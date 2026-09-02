@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact Futurex Studio",
+  title: "Contact Studio | Start an Exhibition Brief",
   description:
-    "Request a proposal or get in touch with Futurex Studio — exhibition design, fabrication and project enquiries.",
+    "Initiate an exhibition design, 3D visualization, or turnkey fabrication brief with Futurex Studio. Fast turnaround proposals and technical review.",
   alternates: { canonical: "/contact" },
   openGraph: {
-    title: "Contact Futurex Studio",
+    title: "Contact Futurex Studio | Exhibition Stand Brief",
     description:
-      "Request a proposal or get in touch — exhibition design, fabrication and project enquiries.",
+      "Initiate an exhibition design, 3D visualization, or turnkey fabrication brief with Futurex Studio.",
     url: "/contact",
     type: "website",
   },

@@ -65,8 +65,8 @@ export default function AboutPage() {
       ref={containerRef}
       className="relative w-full bg-[var(--background,#0b0c0d)] text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white"
     >
-      {/* ========================================================================= */}
-      {/* 1. LUXURY EDITORIAL ABOUT HERO SECTION (MATCHED TO HOME HERO CADENCE)     */}
+   {/* ========================================================================= */}
+      {/* 1. LUXURY ABOUT HERO (ARCHITECTURAL PAVILION RIBS & SPATIAL STAGE)        */}
       {/* ========================================================================= */}
       <section className="relative flex min-h-[75vh] lg:min-h-[85vh] w-full items-center justify-center overflow-hidden border-b border-[var(--border,rgba(241,239,233,0.12))] px-6 py-20 lg:py-28">
         
@@ -78,39 +78,83 @@ export default function AboutPage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover opacity-[0.14] filter grayscale contrast-125 scale-105"
+            className="object-cover opacity-[0.11] filter grayscale contrast-150 scale-105"
           />
-          {/* Radial Dark Mask to focus light at center */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(11,12,13,0.65)_0%,rgba(11,12,13,0.98)_80%)]" />
+          {/* Deep Obsidian Radial Mask */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(11,12,13,0.45)_0%,rgba(11,12,13,0.96)_85%)]" />
         </div>
 
-        {/* Layer 2: Precision Architectural Gridlines */}
+        {/* Layer 2: Apple/Linear Precision Micro Dot Matrix */}
         <div
-          className="pointer-events-none absolute inset-0 z-[1] opacity-20 bg-[linear-gradient(rgba(241,239,233,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(241,239,233,0.06)_1px,transparent_1px)] bg-[size:60px_60px]"
+          className="pointer-events-none absolute inset-0 z-[1] opacity-25 bg-[radial-gradient(rgba(241,239,233,0.22)_1px,transparent_1px)] bg-[size:36px_36px]"
           aria-hidden="true"
         />
 
-        {/* Layer 3: Architectural Crosshair Concentric Radar Rings */}
+        {/* Layer 3: Top Volumetric Stage Beam (Warm Showroom Spotlight) */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-0 z-[2] -translate-x-1/2 h-[520px] w-[900px] bg-[radial-gradient(ellipse_at_top,rgba(255,90,42,0.18)_0%,rgba(255,90,42,0.03)_55%,transparent_75%)] blur-[100px]"
+          aria-hidden="true"
+        />
+
+        {/* Layer 4: 3D Curved Pavilion Structural Ribs (Architectural Depth) */}
         <svg
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 opacity-15"
-          width="700"
-          height="700"
-          viewBox="0 0 700 700"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 h-full w-[1200px] max-w-none opacity-30"
+          viewBox="0 0 1200 600"
           fill="none"
+          xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          <circle cx="350" cy="350" r="180" stroke="white" strokeWidth="1" strokeDasharray="4 6" />
-          <circle cx="350" cy="350" r="280" stroke="white" strokeWidth="1.2" opacity="0.6" />
-          <circle cx="350" cy="350" r="340" stroke="white" strokeWidth="1" opacity="0.3" strokeDasharray="8 8" />
-          <line x1="350" y1="50" x2="350" y2="650" stroke="white" strokeWidth="1" opacity="0.2" />
-          <line x1="50" y1="350" x2="650" y2="350" stroke="white" strokeWidth="1" opacity="0.2" />
+          <path
+            d="M100 550 C 350 150, 850 150, 1100 550"
+            stroke="url(#about-rib-grad)"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M200 550 C 400 230, 800 230, 1000 550"
+            stroke="url(#about-rib-grad)"
+            strokeWidth="1"
+            strokeDasharray="4 6"
+          />
+          <path
+            d="M300 550 C 460 300, 740 300, 900 550"
+            stroke="url(#about-rib-grad)"
+            strokeWidth="0.8"
+            opacity="0.6"
+          />
+          <line
+            x1="600"
+            y1="80"
+            x2="600"
+            y2="550"
+            stroke="rgba(241,239,233,0.15)"
+            strokeWidth="0.8"
+            strokeDasharray="3 5"
+          />
+          <circle cx="600" cy="205" r="3" fill="var(--accent,#ff5a2a)" />
+          <defs>
+            <linearGradient id="about-rib-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(241,239,233,0.05)" />
+              <stop offset="50%" stopColor="rgba(255,90,42,0.6)" />
+              <stop offset="100%" stopColor="rgba(241,239,233,0.05)" />
+            </linearGradient>
+          </defs>
         </svg>
 
-        {/* Layer 4: Multi-Stop Atmospheric Ambient Orange Glows */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 h-[500px] w-[750px] rounded-full bg-[radial-gradient(circle,rgba(255,90,42,0.12)_0%,rgba(255,90,42,0.02)_55%,transparent_75%)] blur-[120px]"
-          aria-hidden="true"
-        />
+        {/* Layer 5: Left & Right Studio Elevation Markers (Desktop Flanks) */}
+        <div className="pointer-events-none absolute inset-y-0 left-8 z-[2] hidden xl:flex flex-col justify-between py-20 font-mono text-[9px] uppercase tracking-widest text-[var(--secondary,#b8b6af)] opacity-35">
+          <span>ATELIER // 01</span>
+          <span>STUDIO ORIGIN</span>
+          <span>+0.00 M LEVEL</span>
+        </div>
+
+        <div className="pointer-events-none absolute inset-y-0 right-8 z-[2] hidden xl:flex flex-col justify-between py-20 font-mono text-[9px] uppercase tracking-widest text-[var(--secondary,#b8b6af)] text-right opacity-35">
+          <span>PHYSICAL // 3D</span>
+          <span>FABRICATION SLA</span>
+          <span>AXIS // A-01</span>
+        </div>
+
+        {/* Layer 6: Horizontal Horizon Laser Datum */}
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-[2] -translate-y-1/2 h-px bg-gradient-to-r from-transparent via-[var(--accent,#ff5a2a)]/30 to-transparent" />
 
         {/* Main Content: Strictly Centered & 2-Line Punchy Headline */}
         <div className="container relative z-10 mx-auto px-6 lg:px-12">
@@ -165,7 +209,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
       {/* 2. POV & Key Stats */}
       <PovStatsSection imageSrc={siteImages.aboutHero.src} />
 
@@ -173,7 +216,7 @@ export default function AboutPage() {
       <HowWeWorkSection principles={principles} />
 
       {/* 4. Structured Process Workflow */}
-      <section className="relative overflow-hidden bg-[var(--surface,#121416)] py-16 lg:py-24 border-t border-[var(--border,rgba(241,239,233,0.12))]">
+      <section className="relative overflow-hidden bg-[#090a0b] py-16 lg:py-24 border-t border-[var(--border,rgba(241,239,233,0.12))]">
         <div className="container relative z-10 mx-auto px-6 lg:px-12">
           <ProcessMotion />
         </div>

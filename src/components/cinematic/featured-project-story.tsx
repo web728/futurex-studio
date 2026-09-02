@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Project } from "@/data/site";
@@ -12,36 +12,57 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const featuredCardImages = [
-  "/gallery/project-1.jpg",
-  "/gallery/1.3.jpg",
-  "/gallery/4.png",
-  "/gallery/project-4.jpeg",
+const fallbackProjects = [
+  {
+    title: "R.K Steel Pavilion",
+    category: "Turnkey Pavilion",
+    image: "/gallery/project-1.jpg",
+  },
+  {
+    title: "Kajaria Laminates Exhibit",
+    category: "Modular Structure",
+    image: "/gallery/1.3.jpg",
+  },
+  {
+    title: "HVAC Solution Bengaluru",
+    category: "Bespoke Exhibition",
+    image: "/gallery/4.png",
+  },
+  {
+    title: "Q Green Expo Stand",
+    category: "Sustainable Architecture",
+    image: "/gallery/project-4.jpeg",
+  },
 ];
 
-const featuredCardTitles = [
-  "R.K Steel",
-  "Kajaria Laminates",
-  "Hvac Solution Bengaluru",
-  "Q Green",
-];
-
-const featuredCategories = [
-  "Pavilion Architecture",
-  "Exhibition Space",
-  "Industrial Experiential",
-  "Modular Structure",
-];
-
-export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
-  const featured = projects.slice(0, 4);
+export function FeaturedProjectStory({ projects }: { projects?: Project[] }) {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
 
+  // Type-Safe Items Extraction
+  const rawItems = (projects && projects.length > 0 ? projects : fallbackProjects).map(
+    (item: any, i) => {
+      const fallback = fallbackProjects[i % fallbackProjects.length];
+      return {
+        title: item.title || fallback.title,
+        category: item.category || fallback.category,
+        image:
+          item.thumbnailImage ||
+          item.featuredImage ||
+          item.image ||
+          fallback.image,
+      };
+    }
+  );
+
+  // Repeat for continuous seamless loop
+  const displayItems = [...rawItems, ...rawItems];
+
+  // 1. Header Entrance Reveal
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Clean Staggered Header Reveal
       const headerElements = headerRef.current?.querySelectorAll(".feat-anim-node");
       if (headerElements && headerElements.length > 0) {
         gsap.fromTo(
@@ -50,7 +71,7 @@ export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
           {
             opacity: 1,
             y: 0,
-            duration: 0.7,
+            duration: 0.8,
             ease: "power2.out",
             stagger: 0.08,
             scrollTrigger: {
@@ -61,64 +82,83 @@ export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
           }
         );
       }
-
-      // 2. Smooth Batch Card Reveal
-      const cards = gridRef.current?.querySelectorAll(".project-card-node");
-      if (cards && cards.length > 0) {
-        gsap.fromTo(
-          cards,
-          { opacity: 0, y: 32 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.75,
-            ease: "power2.out",
-            stagger: 0.12,
-            scrollTrigger: {
-              trigger: gridRef.current,
-              start: "top 85%",
-              once: true,
-            },
-          }
-        );
-      }
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
+  // 2. Ultra-Smooth Continuous Kinetic Marquee (75s Calm Architectural Pace)
+  useEffect(() => {
+    if (!trackRef.current) return;
+
+    const ctx = gsap.context(() => {
+      tweenRef.current = gsap.to(trackRef.current, {
+        xPercent: -50,
+        ease: "none",
+        duration: 75, // Slow, elegant speed
+        repeat: -1,
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  // Smooth Momentum Pause & Resume
+  const handleMouseEnter = () => {
+    if (!tweenRef.current) return;
+    gsap.to(tweenRef.current, { timeScale: 0, duration: 0.9, ease: "power2.out" });
+  };
+
+  const handleMouseLeave = () => {
+    if (!tweenRef.current) return;
+    gsap.to(tweenRef.current, { timeScale: 1, duration: 0.9, ease: "power2.out" });
+  };
+
+  // Smooth Gentle Step on Arrow Click
+  const manualNudge = (direction: "left" | "right") => {
+    if (!tweenRef.current) return;
+    const shift = direction === "left" ? 0.04 : -0.04;
+    const newProgress = gsap.utils.wrap(0, 1, tweenRef.current.progress() - shift);
+    gsap.to(tweenRef.current, {
+      progress: newProgress,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+  };
+
   return (
     <section
       ref={sectionRef}
       id="featured-work"
-      className="relative overflow-hidden  bg-[#0d0e0e] py-20 lg:py-28 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white"
+      className="relative overflow-hidden bg-[var(--background,#0b0c0d)] py-20 lg:py-28 text-[var(--text,#f1efe9)] selection:bg-[var(--accent,#ff5a2a)] selection:text-white border-b border-[var(--border,rgba(241,239,233,0.12))]"
     >
-
-
-      {/* Subtle Ambient Radial Glow */}
+      {/* Ambient Radial Depth Glow */}
       <div
-        className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent,#ff5a2a)]/5 blur-[120px]"
+        className="pointer-events-none absolute left-1/2 top-0 h-[450px] w-[850px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,90,42,0.06)_0%,transparent_75%)] blur-[140px]"
         aria-hidden="true"
       />
 
-      <div className="container relative z-10 mx-auto px-6 lg:px-12">
-        {/* Header Section: Editorial Balanced Grid */}
+      {/* STRICT CONTAINER FOR ENTIRE SECTION: Aligned to Page Grid Lines */}
+      <div className="container relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+        
+        {/* Header Section */}
         <div
           ref={headerRef}
-          className="grid gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:grid-cols-12 lg:items-end"
+          className="flex flex-col justify-between gap-8 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10 lg:flex-row lg:items-end"
         >
-          {/* Left: 2-Line Headline */}
-          <div className="lg:col-span-7">
-            <p className="feat-anim-node text-xs font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
-              Selected Projects
-            </p>
+          {/* Left Title */}
+          <div>
+            <div className="feat-anim-node inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)] shadow-sm">
+              <Sparkles size={11} className="text-[var(--accent,#ff5a2a)] animate-pulse" />
+              <span>Selected Works</span>
+            </div>
 
-            <h2 className="feat-anim-node mt-3 text-[clamp(2.2rem,4.2vw,3.85rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
+            <h2 className="feat-anim-node mt-4 text-[clamp(2.2rem,4.2vw,3.85rem)] font-bold leading-[1.08] tracking-tight text-[var(--text,#f1efe9)]">
               <span className="relative inline-block pb-1.5">
                 Spaces shaped around
-                {/* Clean Glowing Underline */}
+                {/* Glowing Accent Underline */}
                 <span
-                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent"
+                  className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-gradient-to-r from-[var(--accent,#ff5a2a)] via-[var(--focus,#ffd2c3)] to-transparent shadow-[0_0_10px_rgba(255,90,42,0.5)]"
                   aria-hidden="true"
                 />
               </span>
@@ -129,81 +169,110 @@ export function FeaturedProjectStory({ projects }: { projects: Project[] }) {
             </h2>
           </div>
 
-          {/* Right: Sharp Editorial Paragraph */}
-          <div className="lg:col-span-5 lg:pb-1">
-            <p className="feat-anim-node max-w-md text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-base">
-              A curated archive of experiential spatial builds, engineering
-              clarity, and bespoke fabrication crafted for modern exhibition
-              environments.
+          {/* Right Lead & Manual Smooth Arrows */}
+          <div className="flex flex-col items-start gap-4 lg:items-end">
+            <p className="feat-anim-node max-w-sm text-sm font-normal leading-relaxed text-[var(--secondary,#b8b6af)] lg:text-right">
+              Curated spatial installations executed worldwide. Hover over any frame to inspect details in the archive.
             </p>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => manualNudge("left")}
+                aria-label="Previous exhibit"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] text-[var(--text,#f1efe9)] transition-all duration-200 hover:border-[var(--accent,#ff5a2a)] hover:bg-[var(--accent,#ff5a2a)] hover:text-black active:scale-95 cursor-pointer shadow-sm"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => manualNudge("right")}
+                aria-label="Next exhibit"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] text-[var(--text,#f1efe9)] transition-all duration-200 hover:border-[var(--accent,#ff5a2a)] hover:bg-[var(--accent,#ff5a2a)] hover:text-black active:scale-95 cursor-pointer shadow-sm"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Projects 2x2 Grid: Clean, Equal & Balanced */}
+        {/* Continuous Track Window */}
         <div
-          ref={gridRef}
-          className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-10"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="relative mt-12 w-full overflow-hidden rounded-2xl py-2 select-none"
         >
-          {featured.map((project, index) => (
-            <article
-              key={project.slug || index}
-              className="project-card-node group flex flex-col"
-            >
-              <Link href={`/portfolio/${project.slug}`} className="block w-full">
-                {/* Equal Aspect Ratio Image Card with Luxury Frame */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--elevated,#191c1f)] shadow-xl transition-all duration-500 group-hover:border-[var(--accent,#ff5a2a)]/60 group-hover:shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
+          {/* Sub-Pixel Motion Track */}
+          <div
+            ref={trackRef}
+            className="flex gap-6 w-max will-change-transform"
+            style={{ transform: "translate3d(0, 0, 0)" }}
+          >
+            {displayItems.map((project, idx) => (
+              <Link
+                key={`${project.title}-${idx}`}
+                href="/portfolio"
+                aria-label={`View ${project.title} in portfolio`}
+                className="group relative flex w-[300px] sm:w-[380px] lg:w-[440px] shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] shadow-xl transition-colors duration-300 hover:border-[var(--accent,#ff5a2a)]/60 cursor-pointer"
+              >
+                {/* Corner Precision Crosshairs (+) */}
+                <span className="pointer-events-none absolute left-3 top-3 z-20 font-mono text-[9px] text-white/30 group-hover:text-[var(--accent,#ff5a2a)] transition-colors">
+                  +
+                </span>
+                <span className="pointer-events-none absolute right-3 top-3 z-20 font-mono text-[9px] text-white/30 group-hover:text-[var(--accent,#ff5a2a)] transition-colors">
+                  +
+                </span>
+
+                {/* Pure Visual Aspect Frame */}
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#070809]">
                   <Image
-                    src={featuredCardImages[index] || "/gallery/project-1.jpg"}
-                    alt={featuredCardTitles[index] || project.title}
+                    src={project.image}
+                    alt={project.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 300px, 440px"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
-                  
-                  {/* Subtle Dark Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--background,#0b0c0d)]/80 via-transparent to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-60" />
 
-                  {/* Top Floating Badge */}
-                  <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/40 px-3.5 py-1 backdrop-blur-md">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text,#f1efe9)]/90">
-                      {featuredCategories[index] || project.category || "Exhibition"}
+                  {/* Scrim Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-40" />
+
+                  {/* Top Category Badge */}
+                  <div className="absolute left-4 top-4 z-10">
+                    <span className="rounded-full border border-white/15 bg-black/60 px-3 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--text,#f1efe9)] backdrop-blur-md">
+                      {project.category}
                     </span>
                   </div>
-                </div>
 
-                {/* Card Title & Link Line */}
-                <div className="mt-4 flex items-center justify-between border-b border-[var(--border,rgba(241,239,233,0.1))] pb-3 transition-colors duration-300 group-hover:border-[var(--accent,#ff5a2a)]/40">
-                  <div>
-                    <h3 className="text-lg font-semibold tracking-tight text-[var(--text,#f1efe9)] transition-colors duration-300 group-hover:text-[var(--accent,#ff5a2a)] sm:text-xl">
-                      {featuredCardTitles[index] || project.title}
-                    </h3>
-                  </div>
-
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border,rgba(241,239,233,0.18))] bg-[var(--surface,#121416)] text-[var(--secondary,#b8b6af)] transition-all duration-300 group-hover:border-[var(--accent,#ff5a2a)] group-hover:bg-[var(--accent,#ff5a2a)] group-hover:text-white">
-                    <ArrowUpRight size={17} className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  {/* Floating Action Button */}
+                  <div className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/75 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md shadow-lg transition-all duration-300 group-hover:border-[var(--accent,#ff5a2a)] group-hover:bg-[var(--accent,#ff5a2a)] group-hover:text-black group-hover:scale-105">
+                    <span>Explore in Portfolio</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
               </Link>
-            </article>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Section Bottom Footer Link */}
-        <div className="mt-14 flex items-center justify-between border-t border-[var(--border,rgba(241,239,233,0.12))] pt-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--secondary,#b8b6af)]">
-            Archive 01 — 04
+        {/* Section Bottom Strip */}
+        <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-[var(--border,rgba(241,239,233,0.12))] pt-6 sm:flex-row sm:items-center">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--secondary,#b8b6af)]">
+            Continuous Spatial Exhibit Archive
           </p>
+
           <Link
             href="/portfolio"
-            className="group inline-flex items-center gap-2.5 rounded-full border border-[var(--border,rgba(241,239,233,0.18))] bg-[var(--elevated,#191c1f)] px-6 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-[var(--text,#f1efe9)] transition-all duration-300 hover:border-[var(--accent,#ff5a2a)] hover:bg-[var(--accent,#ff5a2a)]/10 hover:text-[var(--accent,#ff5a2a)]"
+            className="group inline-flex items-center gap-2.5 rounded-full border border-[var(--border,rgba(241,239,233,0.18))] bg-[var(--surface,#121416)] px-6 py-3 text-xs font-bold uppercase tracking-wider text-[var(--text,#f1efe9)] transition-all duration-300 hover:border-[var(--accent,#ff5a2a)] hover:bg-[var(--accent,#ff5a2a)] hover:text-black active:scale-95"
           >
-            <span>View Full Archive</span>
+            <span>Explore All Exhibition Stalls</span>
             <ArrowRight
               size={14}
-              className="text-[var(--accent,#ff5a2a)] transition-transform duration-300 group-hover:translate-x-1"
+              className="transition-transform duration-300 group-hover:translate-x-1"
             />
           </Link>
         </div>
+
       </div>
     </section>
   );

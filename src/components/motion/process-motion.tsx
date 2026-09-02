@@ -97,7 +97,7 @@ export function ProcessMotion({ steps }: { steps?: string[] }) {
       {/* Header with 2-Line Display & Accent Glow */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--border,rgba(241,239,233,0.12))] pb-10">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[var(--surface,#121416)] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border,rgba(241,239,233,0.14))] bg-[#090a0b] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent,#ff5a2a)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent,#ff5a2a)] animate-pulse" />
             Execution Methodology
           </div>
@@ -138,7 +138,7 @@ export function ProcessMotion({ steps }: { steps?: string[] }) {
               className={`process-card-item group relative overflow-hidden rounded-2xl border p-7 transition-all duration-300 ${
                 isSelected
                   ? "border-[var(--accent,#ff5a2a)]/60 bg-[var(--elevated,#191c1f)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] -translate-y-1"
-                  : "border-[var(--border,rgba(241,239,233,0.12))] bg-[var(--surface,#121416)] hover:border-[var(--border,rgba(241,239,233,0.3))] hover:bg-[var(--elevated,#191c1f)]/70"
+                  : "border-[var(--border,rgba(241,239,233,0.12))] bg-[#090a0b] hover:border-[var(--border,rgba(241,239,233,0.3))] hover:bg-[var(--elevated,#191c1f)]/70"
               }`}
             >
               {/* Subtle Ambient Hover Glow */}

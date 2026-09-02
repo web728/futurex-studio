@@ -79,16 +79,16 @@ export function ServiceRail({ items }: ServiceRailProps) {
   }, [items, scrollToActiveBtn]);
 
   return (
-    <div className="sticky top-0 z-40 w-full overflow-hidden border-b border-white/10 bg-[#060709]/95 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
+    <div className="sticky top-0 z-40 w-full bg-[#060709]/95 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
       
-      {/* Ultra-Premium Cross Ticker Stage */}
+      {/* Ultra-Premium Cross Ticker Stage - Smooth */}
       <div className="relative h-20 sm:h-24 my-2 overflow-hidden pointer-events-none select-none flex items-center justify-center w-full">
 
         {/* Background Radial Glow */}
         <div className="absolute size-48 sm:size-64 bg-[#FF5A2A]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Ribbon 2 (Dark Cyber Ribbon - Diagonal Bottom Layer) */}
-        <div className="absolute w-[150%] sm:w-[120%] rotate-2 bg-[#0d0f14] text-[#FF5A2A] py-2 sm:py-3 border-y border-[#FF5A2A]/40 shadow-2xl z-10">
+        <div className="absolute w-[150%] sm:w-[120%] rotate-2 bg-[#0d0f14] text-[#FF5A2A] py-2 sm:py-3 shadow-2xl z-10 will-change-transform">
           <div className="flex w-max animate-ticker-right whitespace-nowrap items-center font-mono font-bold text-[10px] sm:text-xs tracking-[0.2em] uppercase">
             {Array.from({ length: 4 }).flatMap((_, dupIdx) =>
               items.map((item, idx) => (
@@ -105,7 +105,7 @@ export function ServiceRail({ items }: ServiceRailProps) {
         </div>
 
         {/* Ribbon 1 (Accent Orange Ribbon - Diagonal Top Layer) */}
-        <div className="absolute w-[150%] sm:w-[120%] -rotate-2 bg-[#FF5A2A] text-black py-2 sm:py-3 shadow-[0_10px_40px_rgba(255,90,42,0.4)] z-20 border-y border-black/20">
+        <div className="absolute w-[150%] sm:w-[120%] -rotate-2 bg-[#FF5A2A] text-black py-2 sm:py-3 shadow-[0_10px_40px_rgba(255,90,42,0.4)] z-20 will-change-transform">
           <div className="flex w-max animate-ticker-left whitespace-nowrap items-center font-black text-xs sm:text-sm tracking-widest uppercase">
             {Array.from({ length: 4 }).flatMap((_, dupIdx) =>
               items.map((item, idx) => (
@@ -154,10 +154,16 @@ export function ServiceRail({ items }: ServiceRailProps) {
 
         .animate-ticker-left {
           animation: ticker-left 22s linear infinite;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          perspective: 1000;
         }
 
         .animate-ticker-right {
           animation: ticker-right 26s linear infinite;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          perspective: 1000;
         }
       `}</style>
     </div>
