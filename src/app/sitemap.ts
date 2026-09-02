@@ -1,6 +1,7 @@
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 import type { MetadataRoute } from "next";
 import { projects, siteUrl as rawSiteUrl } from "@/data/site";
-
 export default function sitemap(): MetadataRoute.Sitemap {
   // Normalize base URL (ensure no trailing slash)
   const baseUrl = (rawSiteUrl || "https://studiofuturex.com").replace(/\/+$/, "");
